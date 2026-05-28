@@ -1,0 +1,425 @@
+/* ============================================================
+   FumiDorado S.A.S — Global Stylesheet
+   Tema: Industrial oscuro con acento dorado
+   ============================================================ */
+
+/* ── Google Fonts ─────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+
+/* ── Tokens ───────────────────────────────────────────────── */
+:root {
+  /* Colores base */
+  --bg-primary:     #111110;
+  --bg-secondary:   #1a1a18;
+  --bg-card:        #1f1f1d;
+  --bg-input:       #252523;
+  --bg-input-focus: #2a2a28;
+
+  /* Acento dorado (marca FumiDorado) */
+  --gold:           #C9962A;
+  --gold-light:     #E0AE45;
+  --gold-dim:       #C9962A33;
+  --gold-text:      #F0C060;
+
+  /* Textos */
+  --text-primary:   #F0EDE4;
+  --text-secondary: #8A8880;
+  --text-muted:     #55544F;
+  --text-inverse:   #111110;
+
+  /* Bordes */
+  --border:         #2E2E2B;
+  --border-focus:   #C9962A;
+  --border-hover:   #3E3E3A;
+
+  /* Semáforo estaciones */
+  --green:          #3B9B5C;
+  --green-bg:       #1A3325;
+  --red:            #D94F4F;
+  --red-bg:         #331A1A;
+  --amber:          #E09B35;
+  --amber-bg:       #332510;
+
+  /* Estados UI */
+  --danger:         #C0392B;
+  --danger-bg:      #2D1414;
+  --success:        #27AE60;
+
+  /* Tipografía */
+  --font-display:   'Syne', sans-serif;
+  --font-body:      'DM Sans', sans-serif;
+
+  /* Radios */
+  --r-sm:  6px;
+  --r-md:  10px;
+  --r-lg:  14px;
+  --r-xl:  20px;
+  --r-full: 999px;
+
+  /* Sombras */
+  --shadow-sm:  0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:  0 4px 16px rgba(0,0,0,.5);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,.6);
+  --shadow-gold: 0 0 24px rgba(201,150,42,.18);
+
+  /* Transiciones */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-fast:   120ms;
+  --t-normal: 220ms;
+  --t-slow:   380ms;
+}
+
+/* ── Reset ────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* ── Tipografía global ────────────────────────────────────── */
+h1, h2, h3, h4, h5 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); }
+h2 { font-size: clamp(1.2rem, 3vw, 1.5rem); }
+h3 { font-size: 1.1rem; }
+h4 { font-size: 0.95rem; }
+
+p  { color: var(--text-secondary); line-height: 1.65; }
+a  { color: var(--gold-text); text-decoration: none; transition: color var(--t-fast); }
+a:hover { color: var(--gold-light); }
+
+small { font-size: 0.78rem; color: var(--text-muted); }
+
+/* ── Inputs ───────────────────────────────────────────────── */
+.fd-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fd-label {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.fd-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.fd-input-wrap .fd-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: color var(--t-normal);
+  display: flex;
+  align-items: center;
+}
+
+.fd-input {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  outline: none;
+  transition:
+    border-color var(--t-normal) var(--ease),
+    background   var(--t-normal) var(--ease),
+    box-shadow   var(--t-normal) var(--ease);
+}
+
+.fd-input::placeholder { color: var(--text-muted); }
+
+.fd-input:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-input-focus);
+}
+
+.fd-input:focus {
+  border-color: var(--border-focus);
+  background: var(--bg-input-focus);
+  box-shadow: 0 0 0 3px var(--gold-dim);
+}
+
+.fd-input:focus ~ .fd-icon,
+.fd-input-wrap:focus-within .fd-icon {
+  color: var(--gold);
+}
+
+.fd-input.error {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.15);
+}
+
+/* Select */
+.fd-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+.fd-select-arrow {
+  position: absolute;
+  right: 14px;
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+/* ── Botones ──────────────────────────────────────────────── */
+.fd-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 24px;
+  border: none;
+  border-radius: var(--r-md);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition:
+    background    var(--t-normal) var(--ease),
+    transform     var(--t-fast)   var(--ease),
+    box-shadow    var(--t-normal) var(--ease),
+    opacity       var(--t-fast);
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.fd-btn:active { transform: scale(0.97); }
+
+.fd-btn-primary {
+  background: var(--gold);
+  color: var(--text-inverse);
+}
+.fd-btn-primary:hover {
+  background: var(--gold-light);
+  box-shadow: var(--shadow-gold);
+}
+
+.fd-btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border);
+}
+.fd-btn-ghost:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+  background: var(--bg-card);
+}
+
+.fd-btn-full { width: 100%; }
+
+.fd-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Mensajes de error / alerta ───────────────────────────── */
+.fd-field-error {
+  font-size: 0.78rem;
+  color: var(--red);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 18px;
+}
+
+.fd-alert {
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+
+.fd-alert-error {
+  background: var(--danger-bg);
+  border: 1px solid rgba(192, 57, 43, 0.3);
+  color: #E07070;
+}
+
+.fd-alert-success {
+  background: var(--green-bg);
+  border: 1px solid rgba(39, 174, 96, 0.3);
+  color: #70C08A;
+}
+
+/* ── Cards ────────────────────────────────────────────────── */
+.fd-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 28px;
+}
+
+/* ── Badge / Pill ─────────────────────────────────────────── */
+.fd-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--r-full);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: var(--font-display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.fd-badge-gold {
+  background: var(--gold-dim);
+  color: var(--gold-text);
+  border: 1px solid rgba(201,150,42,.3);
+}
+
+.fd-badge-green {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+.fd-badge-red {
+  background: var(--red-bg);
+  color: var(--red);
+}
+
+/* ── Divider ──────────────────────────────────────────────── */
+.fd-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 20px 0;
+}
+
+/* ── Logo mark ────────────────────────────────────────────── */
+.fd-logo-mark {
+  width: 56px;
+  height: 56px;
+  background: var(--gold);
+  border-radius: var(--r-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: var(--text-inverse);
+  letter-spacing: -0.02em;
+  box-shadow: var(--shadow-gold);
+  flex-shrink: 0;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ── Utilidades ───────────────────────────────────────────── */
+.text-gold    { color: var(--gold-text); }
+.text-muted   { color: var(--text-muted); }
+.text-secondary { color: var(--text-secondary); }
+.text-center  { text-align: center; }
+.text-right   { text-align: right; }
+.font-display { font-family: var(--font-display); }
+
+.mt-1 { margin-top: 4px; }
+.mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 12px; }
+.mt-4 { margin-top: 16px; }
+.mt-6 { margin-top: 24px; }
+.mt-8 { margin-top: 32px; }
+
+.mb-1 { margin-bottom: 4px; }
+.mb-2 { margin-bottom: 8px; }
+.mb-4 { margin-bottom: 16px; }
+.mb-6 { margin-bottom: 24px; }
+
+.w-full { width: 100%; }
+.hidden { display: none !important; }
+
+/* ── Layout base auth ─────────────────────────────────────── */
+.fd-auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  /* Textura sutil de fondo */
+  background-image:
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(201,150,42,.06) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 80% 80%, rgba(201,150,42,.04) 0%, transparent 60%);
+}
+
+.fd-auth-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* ── Animations ───────────────────────────────────────────── */
+@keyframes fd-fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fd-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fd-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-fade-up {
+  animation: fd-fade-up var(--t-slow) var(--ease) both;
+}
+
+.animate-fade-up-delay-1 {
+  animation: fd-fade-up var(--t-slow) var(--ease) 80ms both;
+}
+
+.animate-fade-up-delay-2 {
+  animation: fd-fade-up var(--t-slow) var(--ease) 160ms both;
+}
+
+.animate-fade-up-delay-3 {
+  animation: fd-fade-up var(--t-slow) var(--ease) 240ms both;
+}
