@@ -3,215 +3,192 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FumiDorado — Acceso al sistema</title>
+  <title>FumiDorado — Acceso</title>
   <link rel="stylesheet" href="/css/styles.css" />
-  <link rel="stylesheet" href="/css/role-select.css" />
+  <style>
+    .role-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-bg);
+      padding: var(--space-6);
+    }
+    .role-card {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-8);
+    }
+    .role-brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-4);
+    }
+    .role-brand__icon {
+      width: 72px;
+      height: 72px;
+      background: var(--color-gold);
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: var(--weight-bold);
+      font-size: var(--text-2xl);
+      color: #111;
+      box-shadow: var(--shadow-gold);
+    }
+    .role-brand__name {
+      font-family: var(--font-display);
+      font-size: var(--text-2xl);
+      font-weight: var(--weight-bold);
+      color: var(--color-gold);
+      text-align: center;
+    }
+    .role-brand__sub {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      text-align: center;
+      margin: 0;
+    }
+    .role-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+    .role-section__label {
+      font-size: var(--text-xs);
+      font-family: var(--font-display);
+      font-weight: var(--weight-semi);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-text-faint);
+      text-align: center;
+    }
+    .role-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: var(--space-5);
+      padding: var(--space-5) var(--space-6);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-fast);
+    }
+    .role-btn:hover {
+      border-color: var(--color-gold);
+      box-shadow: var(--shadow-gold);
+      transform: translateY(-2px);
+    }
+    .role-btn:active { transform: scale(0.98); }
+    .role-btn__icon {
+      width: 48px;
+      height: 48px;
+      flex-shrink: 0;
+      background: var(--color-gold-muted);
+      border: 1px solid var(--color-border-gold);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-gold);
+      transition: background var(--transition-base);
+    }
+    .role-btn:hover .role-btn__icon { background: rgba(212,168,30,0.22); }
+    .role-btn__info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      text-align: left;
+    }
+    .role-btn__name {
+      font-family: var(--font-display);
+      font-size: var(--text-md);
+      font-weight: var(--weight-semi);
+      color: var(--color-text);
+    }
+    .role-btn__desc {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+    .role-btn__arrow {
+      margin-left: auto;
+      color: var(--color-text-faint);
+      flex-shrink: 0;
+      transition: color var(--transition-fast), transform var(--transition-fast);
+    }
+    .role-btn:hover .role-btn__arrow {
+      color: var(--color-gold);
+      transform: translateX(3px);
+    }
+    .role-footer {
+      font-size: var(--text-xs);
+      color: var(--color-text-faint);
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
 
-<main class="fd-auth-page">
-  <div class="fd-auth-card">
+<main class="role-page">
+  <div class="role-card">
 
-    <!-- Encabezado de marca -->
-    <header class="rs-header animate-fade-up">
-      <div class="fd-logo-mark">FD</div>
-      <div class="rs-brand-text">
-        <h1>Fumi Dorado <span class="text-gold">S.A.S</span></h1>
-        <p class="rs-subtitle">Sistema de gestión de servicios</p>
-      </div>
-    </header>
+    <div class="role-brand">
+      <div class="role-brand__icon">FD</div>
+      <h1 class="role-brand__name">Fumi Dorado S.A.S</h1>
+      <p class="role-brand__sub">Sistema de gestión de servicios</p>
+    </div>
 
-    <!-- Alerta de error global (flash) -->
-    <% if (typeof error !== 'undefined' && error) { %>
-      <div class="fd-alert fd-alert-error animate-fade-up mt-4" role="alert">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    <div class="role-section">
+      <span class="role-section__label">¿Cómo desea ingresar?</span>
+
+      <a href="/auth/login" class="role-btn">
+        <div class="role-btn__icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M12 2a5 5 0 1 0 0 10A5 5 0 0 0 12 2z"/>
+            <path d="M12 14c-7 0-7 3-7 3v1h14v-1s0-3-7-3z"/>
+            <polyline points="17 8 19 10 23 6" stroke-width="1.8"/>
+          </svg>
+        </div>
+        <div class="role-btn__info">
+          <span class="role-btn__name">Administrador</span>
+          <span class="role-btn__desc">Acceso con usuario y contraseña</span>
+        </div>
+        <svg class="role-btn__arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"/>
         </svg>
-        <%= error %>
-      </div>
-    <% } %>
+      </a>
 
-    <!-- Selector de rol -->
-    <section class="rs-section animate-fade-up-delay-1">
-      <p class="rs-section-label">¿Cómo desea ingresar?</p>
-
-      <div class="rs-role-grid" role="group" aria-label="Selección de rol">
-
-        <!-- Botón Administrador -->
-        <button
-          class="rs-role-btn"
-          id="btn-admin"
-          type="button"
-          data-role="admin"
-          aria-pressed="false"
-          aria-describedby="desc-admin"
-        >
-          <div class="rs-role-icon" aria-hidden="true">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M12 2a5 5 0 1 0 0 10A5 5 0 0 0 12 2z"/>
-              <path d="M12 14c-7 0-7 3-7 3v1h14v-1s0-3-7-3z"/>
-              <path d="M17 8l1 1 3-3"/>
-            </svg>
-          </div>
-          <div class="rs-role-info">
-            <span class="rs-role-name">Administrador</span>
-            <span class="rs-role-desc" id="desc-admin">Gestión de clientes, sedes y diagramas UPC</span>
-          </div>
-          <div class="rs-role-check" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          </div>
-        </button>
-
-        <!-- Botón Técnico -->
-        <button
-          class="rs-role-btn"
-          id="btn-tecnico"
-          type="button"
-          data-role="tecnico"
-          aria-pressed="false"
-          aria-describedby="desc-tecnico"
-        >
-          <div class="rs-role-icon" aria-hidden="true">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07M8.46 8.46a5 5 0 0 0 0 7.07"/>
-            </svg>
-          </div>
-          <div class="rs-role-info">
-            <span class="rs-role-name">Técnico</span>
-            <span class="rs-role-desc" id="desc-tecnico">Registro de visitas y control de consumo</span>
-          </div>
-          <div class="rs-role-check" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          </div>
-        </button>
-
-      </div>
-    </section>
-
-    <!-- Formulario de credenciales -->
-    <form
-      class="rs-form animate-fade-up-delay-2"
-      id="login-form"
-      action="/auth/login"
-      method="POST"
-      novalidate
-    >
-      <!-- Input oculto que lleva el rol seleccionado -->
-      <input type="hidden" name="role" id="role-input" value="" />
-
-      <!-- Usuario -->
-      <div class="fd-input-group">
-        <label class="fd-label" for="username">Usuario</label>
-        <div class="fd-input-wrap">
-          <span class="fd-icon" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          </span>
-          <input
-            class="fd-input <%= typeof fieldErrors !== 'undefined' && fieldErrors.username ? 'error' : '' %>"
-            type="text"
-            id="username"
-            name="username"
-            placeholder="Ingrese su usuario"
-            value="<%= typeof formData !== 'undefined' ? formData.username : '' %>"
-            autocomplete="username"
-            autocapitalize="none"
-            spellcheck="false"
-            aria-required="true"
-            aria-describedby="username-error"
-          />
+      <a href="/auth/tecnico" class="role-btn">
+        <div class="role-btn__icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07M8.46 8.46a5 5 0 0 0 0 7.07"/>
+          </svg>
         </div>
-        <span class="fd-field-error" id="username-error" role="alert" aria-live="polite">
-          <% if (typeof fieldErrors !== 'undefined' && fieldErrors.username) { %>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            <%= fieldErrors.username %>
-          <% } %>
-        </span>
-      </div>
-
-      <!-- Contraseña -->
-      <div class="fd-input-group mt-3">
-        <label class="fd-label" for="password">Contraseña</label>
-        <div class="fd-input-wrap">
-          <span class="fd-icon" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-          </span>
-          <input
-            class="fd-input <%= typeof fieldErrors !== 'undefined' && fieldErrors.password ? 'error' : '' %>"
-            type="password"
-            id="password"
-            name="password"
-            placeholder="Ingrese su contraseña"
-            autocomplete="current-password"
-            aria-required="true"
-            aria-describedby="password-error"
-          />
-          <!-- Toggle ver contraseña -->
-          <button
-            class="rs-toggle-pass"
-            type="button"
-            id="toggle-password"
-            aria-label="Mostrar contraseña"
-            tabindex="-1"
-          >
-            <svg id="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-          </button>
+        <div class="role-btn__info">
+          <span class="role-btn__name">Técnico</span>
+          <span class="role-btn__desc">Acceso con código personal de 4 dígitos</span>
         </div>
-        <span class="fd-field-error" id="password-error" role="alert" aria-live="polite">
-          <% if (typeof fieldErrors !== 'undefined' && fieldErrors.password) { %>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            <%= fieldErrors.password %>
-          <% } %>
-        </span>
-      </div>
+        <svg class="role-btn__arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </a>
+    </div>
 
-      <!-- Error de rol (si no seleccionó) -->
-      <span class="fd-field-error" id="role-error" role="alert" aria-live="polite"></span>
-
-      <!-- Botón submit -->
-      <button
-        class="fd-btn fd-btn-primary fd-btn-full mt-6"
-        type="submit"
-        id="submit-btn"
-        aria-label="Iniciar sesión"
-      >
-        <span id="btn-text">Iniciar Sesión</span>
-        <span id="btn-spinner" class="rs-spinner hidden" aria-hidden="true"></span>
-      </button>
-
-      <!-- Olvidó contraseña -->
-      <p class="text-center mt-4">
-        <a href="/auth/forgot-password" class="rs-forgot-link">¿Olvidó su contraseña?</a>
-      </p>
-
-    </form>
-
-    <!-- Footer -->
-    <footer class="rs-footer animate-fade-up-delay-3">
-      <p>© <%= new Date().getFullYear() %> FumiDorado S.A.S. · Todos los derechos reservados.</p>
-    </footer>
+    <p class="role-footer">© <%= new Date().getFullYear() %> FumiDorado S.A.S. · Todos los derechos reservados.</p>
 
   </div>
 </main>
 
-<script src="/js/role-select.js"></script>
 </body>
 </html>

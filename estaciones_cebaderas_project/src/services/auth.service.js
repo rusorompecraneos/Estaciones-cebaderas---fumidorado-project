@@ -1,124 +1,92 @@
 /**
  * services/authService.js
- * Lógica de negocio para autenticación.
- * Aquí irá la consulta real a la DB cuando tengas el modelo listo.
  */
 
 'use strict';
 
-// TODO: importar el repositorio cuando esté implementado
-// const authRepository = require('../repositories/authRepository');
-
-// ── Constantes ───────────────────────────────────────────────────────────────
 const VALID_ROLES = ['admin', 'tecnico'];
 
-/**
- * Valida y sanitiza las credenciales recibidas del formulario.
- * Retorna { valid: bool, errors: {} }
- */
+// ── MOCK temporal — reemplazar con queries a PostgreSQL ──────────────────────
+
+const MOCK_ADMINS = [
+  { id: 1, username: 'admin',   password: 'admin123', role: 'admin', nombre: 'Administrador FumiDorado' },
+  { id: 2, username: 'jgomez',  password: 'admin123', role: 'admin', nombre: 'Juan Gómez' },
+];
+
+const MOCK_TECNICOS = [
+  { id: 1, nombre: 'Carlos M. Pérez',   iniciales: 'CP', pin: '1234' },
+  { id: 2, nombre: 'Andrés F. Ramírez', iniciales: 'AR', pin: '2580' },
+  { id: 3, nombre: 'Laura V. Torres',   iniciales: 'LT', pin: '3691' },
+  { id: 4, nombre: 'Miguel A. Suárez',  iniciales: 'MS', pin: '1470' },
+];
+
+// ── Validaciones ─────────────────────────────────────────────────────────────
+
 function validateCredentials({ username, password, role }) {
   const errors = {};
 
-  // Username
   const user = (username || '').trim();
-  if (!user) {
-    errors.username = 'El usuario es requerido.';
-  } else if (user.length < 3 || user.length > 50) {
-    errors.username = 'El usuario debe tener entre 3 y 50 caracteres.';
-  } else if (!/^[a-zA-Z0-9._-]+$/.test(user)) {
-    errors.username = 'El usuario contiene caracteres no permitidos.';
-  }
+  if (!user)               errors.username = 'El usuario es requerido.';
+  else if (user.length < 3) errors.username = 'Mínimo 3 caracteres.';
+  else if (user.length > 50) errors.username = 'Máximo 50 caracteres.';
+  // else if (!/^[a-zA-Z0-9._@-]+$/.test(user)) errors.username = 'Solo letras, números, puntos y guiones.';   // revisar el tema del "@".
 
-  // Password
   const pass = password || '';
-  if (!pass) {
-    errors.password = 'La contraseña es requerida.';
-  } else if (pass.length < 6) {
-    errors.password = 'La contraseña debe tener mínimo 6 caracteres.';
-  } else if (pass.length > 128) {
-    errors.password = 'La contraseña es demasiado larga.';
-  }
+  if (!pass)               errors.password = 'La contraseña es requerida.';
+  else if (pass.length < 6) errors.password = 'Mínimo 6 caracteres.';
+  else if (pass.length > 128) errors.password = 'Contraseña demasiado larga.';
 
-  // Role
-  if (!role || !VALID_ROLES.includes(role)) {
-    errors.role = 'Debe seleccionar un tipo de acceso válido.';
-  }
+  if (role && !VALID_ROLES.includes(role)) errors.role = 'Rol no válido.';
 
-  return {
-    valid: Object.keys(errors).length === 0,
-    errors,
-    sanitized: { username: user, role },
-  };
+  return { valid: Object.keys(errors).length === 0, errors, sanitized: { username: user, role } };
 }
 
-/**
- * Intenta autenticar al usuario contra la base de datos.
- * Por ahora usa usuarios de prueba en memoria.
- * REEMPLAZAR con authRepository.findByUsername() cuando la DB esté lista.
- *
- * @returns {{ success: bool, user: object|null, message: string }}
- */
+// ── Autenticación admin ───────────────────────────────────────────────────────
+
 async function authenticateUser({ username, password, role }) {
+  // TODO: reemplazar con authRepository.findByUsername(username)
+  const user = MOCK_ADMINS.find(u => u.username === username);
+  if (!user) return { success: false, message: 'Credenciales incorrectas.' };
 
-  // ─── MOCK temporal — eliminar cuando conectes PostgreSQL ─────────────────
-  const MOCK_USERS = [
-    {
-      id: 1,
-      username: 'admin',
-      // En producción esto será un hash bcrypt desde la DB
-      password: 'admin123',
-      role: 'admin',
-      nombre: 'Administrador FumiDorado',
-    },
-    {
-      id: 2,
-      username: 'tecnico1',
-      password: 'tecnico123',
-      role: 'tecnico',
-      nombre: 'Carlos M. Pérez',
-    },
-  ];
-
-  const user = MOCK_USERS.find(u => u.username === username);
-
-  if (!user) {
-    return { success: false, message: 'Credenciales incorrectas.' };
-  }
-
-  // Verificar contraseña (mock: comparación directa)
   // TODO: reemplazar con bcrypt.compare(password, user.passwordHash)
-  const passwordMatch = user.password === password;
+  if (user.password !== password) return { success: false, message: 'Credenciales incorrectas.' };
 
-  if (!passwordMatch) {
-    return { success: false, message: 'Credenciales incorrectas.' };
-  }
-
-  // Verificar que el rol coincida con el seleccionado
   if (user.role !== role) {
-    return {
-      success: false,
-      message: `Este usuario no tiene acceso como "${role === 'admin' ? 'Administrador' : 'Técnico'}".`,
-    };
+    return { success: false, message: 'Este usuario no tiene acceso como administrador.' };
   }
 
-  // ─── FIN MOCK ─────────────────────────────────────────────────────────────
-
-  // Retornar datos de sesión (sin contraseña)
   return {
     success: true,
-    user: {
-      id:       user.id,
-      username: user.username,
-      role:     user.role,
-      nombre:   user.nombre,
-    },
+    user: { id: user.id, username: user.username, role: user.role, nombre: user.nombre },
   };
 }
 
+// ── Autenticación técnico (PIN) ───────────────────────────────────────────────
+
+async function authenticateTecnico({ tecnicoId, pin }) {
+  // TODO: reemplazar con tecnicoRepository.findById(tecnicoId)
+  const tecnico = MOCK_TECNICOS.find(t => t.id === parseInt(tecnicoId, 10));
+  if (!tecnico) return { success: false, message: 'Técnico no encontrado.' };
+
+  // TODO: reemplazar con bcrypt.compare(pin, tecnico.pinHash)
+  if (tecnico.pin !== pin) return { success: false, message: 'PIN incorrecto. Intente nuevamente.' };
+
+  return {
+    success: true,
+    user: { id: tecnico.id, username: tecnico.nombre, role: 'tecnico', nombre: tecnico.nombre },
+  };
+}
+
+// ── Helpers públicos ──────────────────────────────────────────────────────────
+
+function getMockTecnicos() {
+  // Solo exponer id, nombre e iniciales — nunca el PIN
+  return MOCK_TECNICOS.map(({ id, nombre, iniciales }) => ({ id, nombre, iniciales }));
+}
 export default {
   validateCredentials,
   authenticateUser,
+  authenticateTecnico,
+  getMockTecnicos,
   VALID_ROLES,
 };
-
-// comentarios de funciones para explicar cada paso del proceso de autenticación, validación y manejo de errores. 

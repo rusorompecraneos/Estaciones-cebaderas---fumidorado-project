@@ -16,7 +16,9 @@ app.use(express.static('public'));
 app.use('/auth', authRoutes);
 
 // GET 
-app.get('/', (req, res) => res.redirect('/auth/login'));
+app.get('/', (req, res) => res.redirect('/auth/role-select'));
+
+
 
 
 

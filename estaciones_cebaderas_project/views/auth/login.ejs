@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FumiDorado — Administrador</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-bg);
+      padding: var(--space-6);
+    }
+
+    /* Reutilizamos auth-card del styles.css global */
+    .auth-card {
+      position: relative;
+    }
+
+    /* Volver */
+    .login-back {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
+      text-decoration: none;
+      margin-bottom: var(--space-6);
+      transition: color var(--transition-fast);
+    }
+    .login-back:hover { color: var(--color-gold); }
+
+    /* Cabecera */
+    .login-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
+    }
+    .login-header__icon {
+      width: 64px;
+      height: 64px;
+      background: var(--color-gold);
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: var(--weight-bold);
+      font-size: var(--text-xl);
+      color: #111;
+      box-shadow: var(--shadow-gold);
+    }
+    .login-header__title {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: var(--weight-bold);
+      color: var(--color-gold);
+      text-align: center;
+    }
+    .login-header__sub {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      text-align: center;
+      margin: 0;
+    }
+
+    /* Badge rol */
+    .login-role-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-4);
+      background: var(--color-gold-muted);
+      border: 1px solid var(--color-border-gold);
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs);
+      font-family: var(--font-display);
+      font-weight: var(--weight-semi);
+      color: var(--color-gold);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: var(--space-6);
+    }
+
+    /* Toggle contraseña */
+    .input-password__toggle {
+      position: absolute;
+      right: var(--space-3);
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--color-text-faint);
+      cursor: pointer;
+      padding: var(--space-1);
+      display: flex;
+      align-items: center;
+      transition: color var(--transition-fast);
+    }
+    .input-password__toggle:hover { color: var(--color-gold); }
+
+    .form-input-wrapper { position: relative; }
+
+    /* Error field */
+    .field-error {
+      font-size: var(--text-xs);
+      color: var(--color-error);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 16px;
+      margin-top: 2px;
+    }
+
+    .form-control.is-error {
+      border-color: var(--color-error);
+      box-shadow: 0 0 0 3px rgba(224,82,82,0.15);
+    }
+
+    /* Footer link */
+    .login-footer {
+      text-align: center;
+      margin-top: var(--space-4);
+    }
+    .login-footer a {
+      font-size: var(--text-sm);
+      color: var(--color-gold);
+      transition: color var(--transition-fast);
+    }
+    .login-footer a:hover { color: var(--color-gold-light); }
+
+    /* Spinner */
+    .btn-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(17,17,16,0.3);
+      border-top-color: #111;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<main class="login-page">
+  <div class="auth-card">
+
+    <!-- Volver -->
+    <a href="/auth/role-select" class="login-back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Volver
+    </a>
+
+    <!-- Encabezado -->
+    <div class="login-header">
+      <div class="login-header__icon">FD</div>
+      <h1 class="login-header__title">Fumi Dorado S.A.S</h1>
+      <p class="login-header__sub">Sistema de gestión de servicios</p>
+    </div>
+
+    <!-- Badge -->
+    <div class="login-role-badge">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2a5 5 0 1 0 0 10A5 5 0 0 0 12 2z"/>
+        <path d="M12 14c-7 0-7 3-7 3v1h14v-1s0-3-7-3z"/>
+      </svg>
+      Administrador
+    </div>
+
+    <!-- Alerta error global -->
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert--error" style="margin-bottom: var(--space-5);" role="alert">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <%= error %>
+      </div>
+    <% } %>
+
+    <!-- Formulario -->
+    <form class="auth-card__form" id="login-form" action="/auth/login" method="POST" novalidate>
+
+      <!-- Usuario -->
+      <div class="form-group">
+        <label class="form-label" for="username">Usuario</label>
+        <div class="form-input-wrapper">
+          <span class="input-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </span>
+          <input
+            class="form-control form-control--icon <%= typeof fieldErrors !== 'undefined' && fieldErrors.username ? 'is-error' : '' %>"
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Ingrese su usuario"
+            value="<%= typeof formData !== 'undefined' ? formData.username : '' %>"
+            autocomplete="username"
+            autocapitalize="none"
+            spellcheck="false"
+          />
+        </div>
+        <span class="field-error" id="username-error" role="alert">
+          <% if (typeof fieldErrors !== 'undefined' && fieldErrors.username) { %>
+            <%= fieldErrors.username %>
+          <% } %>
+        </span>
+      </div>
+
+      <!-- Contraseña -->
+      <div class="form-group">
+        <label class="form-label" for="password">Contraseña</label>
+        <div class="form-input-wrapper input-password">
+          <span class="input-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </span>
+          <input
+            class="form-control form-control--icon <%= typeof fieldErrors !== 'undefined' && fieldErrors.password ? 'is-error' : '' %>"
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Ingrese su contraseña"
+            autocomplete="current-password"
+          />
+          <button class="input-password__toggle" type="button" id="toggle-pass" aria-label="Mostrar contraseña">
+            <svg id="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+        <span class="field-error" id="password-error" role="alert">
+          <% if (typeof fieldErrors !== 'undefined' && fieldErrors.password) { %>
+            <%= fieldErrors.password %>
+          <% } %>
+        </span>
+      </div>
+
+      <!-- Submit -->
+      <button class="btn btn--primary btn--lg" type="submit" id="submit-btn" style="margin-top: var(--space-2);">
+        <span id="btn-text">Iniciar Sesión</span>
+        <span id="btn-spinner" class="btn-spinner hidden"></span>
+      </button>
+
+    </form>
+
+    <!-- Olvidó contraseña -->
+    <div class="login-footer">
+      <a href="/auth/forgot-password">¿Olvidó su contraseña?</a>
+    </div>
+
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  const form        = document.getElementById('login-form');
+  const usernameEl  = document.getElementById('username');
+  const passwordEl  = document.getElementById('password');
+  const submitBtn   = document.getElementById('submit-btn');
+  const btnText     = document.getElementById('btn-text');
+  const btnSpinner  = document.getElementById('btn-spinner');
+  const togglePass  = document.getElementById('toggle-pass');
+  const eyeIcon     = document.getElementById('eye-icon');
+  const userErr     = document.getElementById('username-error');
+  const passErr     = document.getElementById('password-error');
+
+  // ── Toggle contraseña ──────────────────────────────────────
+  const eyeOpen   = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  const eyeClosed = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+
+  togglePass.addEventListener('click', function () {
+    const show = passwordEl.type === 'password';
+    passwordEl.type = show ? 'text' : 'password';
+    eyeIcon.innerHTML = show ? eyeClosed : eyeOpen;
+    this.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  });
+
+  // ── Validación ─────────────────────────────────────────────
+  function setError(input, errEl, msg) {
+    errEl.textContent = msg;
+    input.classList.add('is-error');
+    return false;
+  }
+
+  function clearError(input, errEl) {
+    errEl.textContent = '';
+    input.classList.remove('is-error');
+  }
+
+  function validateUsername() {
+    const val = usernameEl.value.trim();
+    if (!val)          return setError(usernameEl, userErr, 'El usuario es requerido.');
+    if (val.length < 3) return setError(usernameEl, userErr, 'Mínimo 3 caracteres.');
+    if (!/^[a-zA-Z0-9._-]+$/.test(val)) return setError(usernameEl, userErr, 'Solo letras, números, puntos y guiones.');
+    clearError(usernameEl, userErr);
+    return true;
+  }
+
+  function validatePassword() {
+    const val = passwordEl.value;
+    if (!val)          return setError(passwordEl, passErr, 'La contraseña es requerida.');
+    if (val.length < 6) return setError(passwordEl, passErr, 'Mínimo 6 caracteres.');
+    clearError(passwordEl, passErr);
+    return true;
+  }
+
+  usernameEl.addEventListener('blur',  validateUsername);
+  passwordEl.addEventListener('blur',  validatePassword);
+  usernameEl.addEventListener('input', () => { if (usernameEl.classList.contains('is-error')) validateUsername(); });
+  passwordEl.addEventListener('input', () => { if (passwordEl.classList.contains('is-error')) validatePassword(); });
+
+  // ── Submit ─────────────────────────────────────────────────
+  form.addEventListener('submit', function (e) {
+    const okU = validateUsername();
+    const okP = validatePassword();
+    if (!okU || !okP) {
+      e.preventDefault();
+      (!okU ? usernameEl : passwordEl).focus();
+      return;
+    }
+    submitBtn.disabled = true;
+    btnText.textContent = 'Verificando...';
+    btnSpinner.classList.remove('hidden');
+  });
+})();
+</script>
+
+</body>
+</html>
