@@ -155,5 +155,5 @@ function _redirectByRole(res, role) {
     admin:   '/admin/dashboard',
     tecnico: '/tecnico/dashboard',
   };
-  return res.redirect(routes[role] || '/auth/role');
+  return res.redirect(routes[role] || '/auth/role-select');
 }
