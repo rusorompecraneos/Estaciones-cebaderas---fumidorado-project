@@ -1,35 +1,37 @@
-/**
- * routes/auth.routes.js
- */
+// src/routes/auth.routes.js
 
-'use strict';
-
-import express from 'express';
-
-import authController from '../controllers/auth.controller.js';
+import { Router } from 'express';
+import {
+  showRoleSelect,
+  showLogin,
+  handleLogin,
+  showTecnicoAccess,
+  verifyTecnicoPin,
+  handleLogout,
+  showForgotPassword,
+} from '../controllers/auth.controller.js';
 import { guestOnly } from '../middlewares/authmiddleware.js';
 
-const router = express.Router();
+const router = Router();
 
-// Selector de rol
-router.get('/role-select',  guestOnly, authController.showRoleSelect);
- 
-// Admin login
-router.get('/login',  guestOnly, authController.showLogin);
-router.post('/login', guestOnly, authController.handleLogin);
- 
-// Técnico
-router.get('/tecnico',        guestOnly, authController.showTecnicoAccess);
-router.post('/tecnico/verify',           authController.verifyTecnicoPin);  // AJAX — sin guestOnly para evitar race conditions
- 
-// Logout
-router.get('/logout', authController.handleLogout);
- 
-// Recuperación de contraseña (próxima iteración)
-router.get('/forgot-password', guestOnly, authController.showForgotPassword);
- 
-// Raíz → role select
-router.get('/', (req, res) => res.redirect('/auth/role-select'));
+// ── Selector de rol ───────────────────────────────────────────────────────────
+router.get('/role-select', guestOnly, showRoleSelect);
 
- 
+// ── Admin ─────────────────────────────────────────────────────────────────────
+router.get('/login',  guestOnly, showLogin);
+router.post('/login', guestOnly, handleLogin);
+
+// ── Técnico ───────────────────────────────────────────────────────────────────
+router.get('/tecnico',         guestOnly, showTecnicoAccess);
+router.post('/tecnico/verify',            verifyTecnicoPin);   // AJAX
+
+// ── Sesión ────────────────────────────────────────────────────────────────────
+router.get('/logout', handleLogout);
+
+// ── Recuperación (próxima iteración) ──────────────────────────────────────────
+router.get('/forgot-password', guestOnly, showForgotPassword);
+
+// ── Raíz ─────────────────────────────────────────────────────────────────────
+router.get('/', (req, res) => res.redirect('/auth/role'));
+
 export default router;

@@ -1,92 +1,120 @@
+// src/services/auth.service.js
+// Lógica de negocio: validaciones, bcrypt, llamadas al repositorio.
+
+import bcrypt from 'bcrypt';
+import * as authRepo from '../repositories/auth.repository.js';
+import { mapAdmin } from '../models/admin.model.js';
+import { mapTecnicoPublico } from '../models/tecnico.model.js';
+
+// ── VALIDACIONES DE FORMULARIO ───────────────────────────────────────────────
+
 /**
- * services/authService.js
+ * Valida los campos del formulario de login de admin.
+ * (Validación server-side — complementa la del cliente)
  */
-
-'use strict';
-
-const VALID_ROLES = ['admin', 'tecnico'];
-
-// ── MOCK temporal — reemplazar con queries a PostgreSQL ──────────────────────
-
-const MOCK_ADMINS = [
-  { id: 1, username: 'admin',   password: 'admin123', role: 'admin', nombre: 'Administrador FumiDorado' },
-  { id: 2, username: 'jgomez',  password: 'admin123', role: 'admin', nombre: 'Juan Gómez' },
-];
-
-const MOCK_TECNICOS = [
-  { id: 1, nombre: 'Carlos M. Pérez',   iniciales: 'CP', pin: '1234' },
-  { id: 2, nombre: 'Andrés F. Ramírez', iniciales: 'AR', pin: '2580' },
-  { id: 3, nombre: 'Laura V. Torres',   iniciales: 'LT', pin: '3691' },
-  { id: 4, nombre: 'Miguel A. Suárez',  iniciales: 'MS', pin: '1470' },
-];
-
-// ── Validaciones ─────────────────────────────────────────────────────────────
-
-function validateCredentials({ username, password, role }) {
+export function validateLoginInput({ username, password }) {
   const errors = {};
 
   const user = (username || '').trim();
-  if (!user)               errors.username = 'El usuario es requerido.';
-  else if (user.length < 3) errors.username = 'Mínimo 3 caracteres.';
+  if (!user)                errors.username = 'El usuario es requerido.';
+  else if (user.length < 3)  errors.username = 'Mínimo 3 caracteres.';
   else if (user.length > 50) errors.username = 'Máximo 50 caracteres.';
-  // else if (!/^[a-zA-Z0-9._@-]+$/.test(user)) errors.username = 'Solo letras, números, puntos y guiones.';   // revisar el tema del "@".
+  else if (!/^[a-zA-Z0-9._-]+$/.test(user))
+    errors.username = 'Solo letras, números, puntos y guiones.';
 
   const pass = password || '';
-  if (!pass)               errors.password = 'La contraseña es requerida.';
-  else if (pass.length < 6) errors.password = 'Mínimo 6 caracteres.';
+  if (!pass)                errors.password = 'La contraseña es requerida.';
+  else if (pass.length < 6)  errors.password = 'Mínimo 6 caracteres.';
   else if (pass.length > 128) errors.password = 'Contraseña demasiado larga.';
 
-  if (role && !VALID_ROLES.includes(role)) errors.role = 'Rol no válido.';
-
-  return { valid: Object.keys(errors).length === 0, errors, sanitized: { username: user, role } };
+  return { valid: Object.keys(errors).length === 0, errors, sanitized: { username: user } };
 }
 
-// ── Autenticación admin ───────────────────────────────────────────────────────
+// ── AUTENTICACIÓN ADMIN ──────────────────────────────────────────────────────
 
-async function authenticateUser({ username, password, role }) {
-  // TODO: reemplazar con authRepository.findByUsername(username)
-  const user = MOCK_ADMINS.find(u => u.username === username);
-  if (!user) return { success: false, message: 'Credenciales incorrectas.' };
+/**
+ * Autentica un administrador contra la DB.
+ * Usa bcrypt para verificar el hash de la contraseña.
+ *
+ * @returns {{ success: boolean, user?: object, message?: string }}
+ */
+export async function authenticateAdmin({ username, password }) {
+  // 1. Buscar en DB
+  const row = await authRepo.findAdminByUsername(username);
 
-  // TODO: reemplazar con bcrypt.compare(password, user.passwordHash)
-  if (user.password !== password) return { success: false, message: 'Credenciales incorrectas.' };
-
-  if (user.role !== role) {
-    return { success: false, message: 'Este usuario no tiene acceso como administrador.' };
+  if (!row) {
+    // No revelar si el usuario existe o no (seguridad)
+    return { success: false, message: 'Usuario o contraseña incorrectos.' };
   }
 
+  // 2. Verificar que esté activo
+  if (!row.activo) {
+    return { success: false, message: 'Esta cuenta está desactivada. Contacte al administrador.' };
+  }
+
+  // 3. Comparar contraseña con bcrypt
+  const match = await bcrypt.compare(password, row.password);
+  if (!match) {
+    return { success: false, message: 'Usuario o contraseña incorrectos.' };
+  }
+
+  // 4. Retornar datos de sesión (sin el hash)
   return {
     success: true,
-    user: { id: user.id, username: user.username, role: user.role, nombre: user.nombre },
+    user: mapAdmin(row),
   };
 }
 
-// ── Autenticación técnico (PIN) ───────────────────────────────────────────────
+// ── AUTENTICACIÓN TÉCNICO (PIN) ──────────────────────────────────────────────
 
-async function authenticateTecnico({ tecnicoId, pin }) {
-  // TODO: reemplazar con tecnicoRepository.findById(tecnicoId)
-  const tecnico = MOCK_TECNICOS.find(t => t.id === parseInt(tecnicoId, 10));
-  if (!tecnico) return { success: false, message: 'Técnico no encontrado.' };
+/**
+ * Autentica un técnico por id + PIN de 4 dígitos.
+ * Usa bcrypt para verificar el hash del PIN.
+ */
+export async function authenticateTecnico({ tecnicoId, pin }) {
+  // 1. Validar formato del PIN
+  if (!pin || !/^\d{4}$/.test(pin)) {
+    return { success: false, message: 'El PIN debe ser de 4 dígitos numéricos.' };
+  }
 
-  // TODO: reemplazar con bcrypt.compare(pin, tecnico.pinHash)
-  if (tecnico.pin !== pin) return { success: false, message: 'PIN incorrecto. Intente nuevamente.' };
+  // 2. Buscar técnico en DB
+  const row = await authRepo.findTecnicoById(tecnicoId);
 
+  if (!row) {
+    return { success: false, message: 'Técnico no encontrado.' };
+  }
+
+  // 3. Verificar que esté activo
+  if (!row.activo) {
+    return { success: false, message: 'Este técnico está desactivado. Contacte al administrador.' };
+  }
+
+  // 4. Comparar PIN con bcrypt
+  const match = await bcrypt.compare(pin, row.pin);
+  if (!match) {
+    return { success: false, message: 'PIN incorrecto. Intente nuevamente.' };
+  }
+
+  // 5. Retornar datos de sesión
   return {
     success: true,
-    user: { id: tecnico.id, username: tecnico.nombre, role: 'tecnico', nombre: tecnico.nombre },
+    user: {
+      id:        row.id,
+      username:  row.nombre,
+      nombre:    row.nombre,
+      iniciales: row.iniciales,
+      role:      'tecnico',
+    },
   };
 }
 
-// ── Helpers públicos ──────────────────────────────────────────────────────────
+// ── HELPERS PÚBLICOS ─────────────────────────────────────────────────────────
 
-function getMockTecnicos() {
-  // Solo exponer id, nombre e iniciales — nunca el PIN
-  return MOCK_TECNICOS.map(({ id, nombre, iniciales }) => ({ id, nombre, iniciales }));
+/**
+ * Obtiene la lista de técnicos activos para el desplegable.
+ * Solo devuelve id, nombre e iniciales — nunca el PIN.
+ */
+export async function getTecnicosActivos() {
+  const rows = await authRepo.findAllTecnicosActivos();
+  return rows.map(mapTecnicoPublico);
 }
-export default {
-  validateCredentials,
-  authenticateUser,
-  authenticateTecnico,
-  getMockTecnicos,
-  VALID_ROLES,
-};

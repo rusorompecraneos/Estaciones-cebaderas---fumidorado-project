@@ -1,67 +1,51 @@
-/**
- * middlewares/authMiddleware.js
- * Protección de rutas por sesión y rol.
- */
+// src/middlewares/auth.middleware.js
 
-'use strict';
-
+// ── isAuthenticated ───────────────────────────────────────────────────────────
 /**
- * isAuthenticated
  * Protege rutas que requieren sesión activa.
- * Si no hay sesión, redirige a /auth/login.
+ * Inyecta currentUser en res.locals para que esté disponible en todas las vistas.
  */
 export function isAuthenticated(req, res, next) {
-  if (req.session && req.session.user) {
-    // Adjuntar usuario a res.locals para que esté disponible en todas las vistas
+  if (req.session?.user) {
     res.locals.currentUser = req.session.user;
     return next();
   }
-
-  // Guardar la URL original para redirigir después del login (opcional)
   req.session.returnTo = req.originalUrl;
   return res.redirect('/auth/login');
 }
 
+// ── guestOnly ─────────────────────────────────────────────────────────────────
 /**
- * guestOnly
  * Solo permite acceso a usuarios NO autenticados.
+ * Si ya hay sesión, redirige al dashboard correspondiente.
  */
 export function guestOnly(req, res, next) {
-  if (req.session && req.session.user) {
-    const role = req.session.user.role;
-
-    const dashboards = {
-      admin: '/admin/dashboard',
-      tecnico: '/tecnico/dashboard',
-    };
-
-    return res.redirect(dashboards[role] || '/auth/login');
+  if (req.session?.user) {
+    const routes = { admin: '/admin/dashboard', tecnico: '/tecnico/dashboard' };
+    return res.redirect(routes[req.session.user.role] || '/auth/role');
   }
-
   return next();
 }
 
+// ── requireRole ───────────────────────────────────────────────────────────────
 /**
- * requireRole(...roles)
- * Middleware de fábrica: restringe el acceso según rol.
+ * Middleware de fábrica: restringe acceso por rol.
+ *
+ * Uso:
+ *   router.get('/dashboard', isAuthenticated, requireRole('admin'), handler)
+ *   router.get('/visita',    isAuthenticated, requireRole('admin', 'tecnico'), handler)
  */
 export function requireRole(...roles) {
-  return function (req, res, next) {
+  return (req, res, next) => {
+    if (!req.session?.user) return res.redirect('/auth/login');
 
-    if (!req.session || !req.session.user) {
-      return res.redirect('/auth/login');
-    }
-
-    const userRole = req.session.user.role;
-
-    if (!roles.includes(userRole)) {
+    if (!roles.includes(req.session.user.role)) {
       return res.status(403).render('errors/403', {
-        title: 'Acceso denegado',
+        title:       'Acceso denegado — FumiDorado',
         currentUser: req.session.user,
-        message: 'No tienes permisos para acceder a esta sección.',
+        message:     'No tienes permisos para acceder a esta sección.',
       });
     }
-
     return next();
   };
 }
