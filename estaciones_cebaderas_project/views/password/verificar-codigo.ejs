@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificación – Fumi Dorado</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+
+      <div class="auth-card__logo">
+        <div class="auth-card__logo-icon">🛡️</div>
+        <h1 class="auth-card__title">Verificación</h1>
+        <p class="auth-card__subtitle">
+          Ingresa el código enviado a tu celular
+        </p>
+        <p class="text-gold" style="font-weight: 600;">+57 **********</p>
+      </div>
+
+      <form class="auth-card__form" action="/password/verificar" method="POST">
+        <div class="form-group">
+          <label class="form-label text-center">Código de verificación</label>
+          <div class="otp-group">
+            <input class="otp-input" type="text" name="d1" maxlength="1" inputmode="numeric" autofocus />
+            <input class="otp-input" type="text" name="d2" maxlength="1" inputmode="numeric" />
+            <input class="otp-input" type="text" name="d3" maxlength="1" inputmode="numeric" />
+            <input class="otp-input" type="text" name="d4" maxlength="1" inputmode="numeric" />
+            <input class="otp-input" type="text" name="d5" maxlength="1" inputmode="numeric" />
+            <input class="otp-input" type="text" name="d6" maxlength="1" inputmode="numeric" />
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--lg">
+          Verificar código
+        </button>
+      </form>
+
+      <div class="text-center">
+        <p class="auth-card__subtitle">¿No recibiste el código?</p>
+        <a href="/password/recuperar" class="auth-link">Reenviar código</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const inputs = document.querySelectorAll('.otp-input');
+    inputs.forEach((input, i) => {
+      input.addEventListener('input', () => {
+        if (input.value.length === 1) {
+          input.classList.add('filled');
+          if (i < inputs.length - 1) inputs[i + 1].focus();
+        }
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace') {
+          input.classList.remove('filled');
+          if (input.value === '' && i > 0) inputs[i - 1].focus();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

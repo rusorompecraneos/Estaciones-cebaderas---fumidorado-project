@@ -3,7 +3,6 @@
 // Los servicios llaman a este repositorio; nunca al pool directamente.
 
 import pool from '../config/db.config.js';
-
 // ── ADMINISTRADORES ──────────────────────────────────────────────────────────
 
 /**

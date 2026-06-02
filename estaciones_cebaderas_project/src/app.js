@@ -5,8 +5,12 @@ import session        from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+
+
 import pool           from './config/db.config.js';
 import authRoutes     from './routes/auth.routes.js';
+import passwordRoutes from './routes/password.routes.js';
+
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +28,7 @@ app.use(express.static(join(__dirname,'..', 'public')));
 // ── Body parsers ──────────────────────────────────────────────────────────────
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
 
 // ── Sesiones con PostgreSQL ───────────────────────────────────────────────────
 const PgSession = connectPgSimple(session);
@@ -54,6 +59,8 @@ app.use((req, res, next) => {
 
 // ── Rutas ─────────────────────────────────────────────────────────────────────
 app.use('/auth', authRoutes);
+
+app.use('/password', passwordRoutes);
 
 // Raíz → selector de rol
 app.get('/', (req, res) => res.redirect('/auth/role-select'));
