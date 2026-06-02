@@ -10,7 +10,7 @@ import { dirname, join } from 'path';
 import pool           from './config/db.config.js';
 import authRoutes     from './routes/auth.routes.js';
 import passwordRoutes from './routes/password.routes.js';
-
+import adminRoutes    from './routes/admin.routes.js';
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -59,6 +59,8 @@ app.use((req, res, next) => {
 
 // ── Rutas ─────────────────────────────────────────────────────────────────────
 app.use('/auth', authRoutes);
+
+app.use('/admin', adminRoutes);
 
 app.use('/password', passwordRoutes);
 
