@@ -9,6 +9,8 @@ import {
 } from '../controllers/usuarios.controller.js';
 import { isAuthenticated, requireRole } from '../middlewares/authmiddleware.js';
 
+import { showDiagramas, subirDiagrama, showConfigurar } from '../controllers/diagramas.controller.js';
+
 const router = Router();
 router.use(isAuthenticated, requireRole('admin'));
 
@@ -29,6 +31,9 @@ router.put('/usuarios/tecnicos/:id',     editarTecnico);
 router.delete('/usuarios/tecnicos/:id',  eliminarTecnico);
 
 // Placeholder diagramas (próxima entrega)
-router.get('/diagramas', (req, res) => res.redirect('/admin/dashboard'));
+router.get('/diagramas-upc', showDiagramas);
+router.post('/diagramas-upc', subirDiagrama);
+router.get('/diagramas-upc/:id', showConfigurar);
 
 export default router;
+

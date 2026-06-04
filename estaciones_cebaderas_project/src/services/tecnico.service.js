@@ -1,6 +1,7 @@
 // src/services/tecnico.service.js
 
-import * as repo from '../repositories/tecnico.repository.js';
+import * as repo          from '../repositories/tecnico.repository.js';
+import * as diagramaRepo  from '../repositories/diagramas.repository.js';
 
 // ── Catálogos ────────────────────────────────────────────────────────────────
 
@@ -41,16 +42,52 @@ export async function getSedesByCliente(clienteId) {
 
 // ── Visitas ───────────────────────────────────────────────────────────────────
 
+/**
+ * Inicia una visita.
+ * Si la sede tiene un diagrama UPC configurado, crea las estaciones
+ * automáticamente desde sus puntos.
+ * Si no, deja la visita vacía (el técnico agrega manualmente).
+ */
 export async function iniciarVisita({ tecnicoId, sedeId }) {
   if (!tecnicoId || !sedeId) throw new Error('Técnico y sede son requeridos.');
+
   const visitaId = await repo.createVisita({ tecnicoId, sedeId });
-  return visitaId;
+
+  // Buscar diagrama UPC activo para esta sede
+  const diagrama = await diagramaRepo.findDiagramaBySede(sedeId);
+  let desdeDiagrama = false;
+
+  if (diagrama) {
+    const puntos = await diagramaRepo.findPuntosByDiagrama(diagrama.id);
+    // Crear una estación por cada punto del diagrama
+    for (const punto of puntos) {
+      await repo.createEstacion({
+        visitaId,
+        numero: punto.numero,
+        tipo:   punto.tipo,
+      });
+    }
+    desdeDiagrama = puntos.length > 0;
+  }
+
+  return { visitaId, desdeDiagrama };
 }
 
 export async function getVisitaDetalle(visitaId) {
   const visita     = await repo.findVisitaById(visitaId);
   const estaciones = await repo.findEstacionesByVisita(visitaId);
-  return { visita, estaciones };
+
+  // Buscar diagrama UPC de la sede para el mapa
+  let diagrama = null;
+  let puntos   = [];
+  if (visita) {
+    diagrama = await diagramaRepo.findDiagramaBySede(visita.sede_id);
+    if (diagrama) {
+      puntos = await diagramaRepo.findPuntosByDiagrama(diagrama.id);
+    }
+  }
+
+  return { visita, estaciones, diagrama, puntos };
 }
 
 export async function finalizarVisita(visitaId) {
@@ -63,7 +100,6 @@ export async function agregarEstacion({ visitaId, tipo }) {
   if (!TIPOS_ESTACION.find(t => t.value === tipo)) {
     throw new Error('Tipo de estación inválido.');
   }
-  // Obtener el número siguiente
   const estaciones = await repo.findEstacionesByVisita(visitaId);
   const numero     = estaciones.length + 1;
   const id         = await repo.createEstacion({ visitaId, numero, tipo });
@@ -71,7 +107,6 @@ export async function agregarEstacion({ visitaId, tipo }) {
 }
 
 export async function actualizarEstacion({ id, consumo, repone, novedad, observaciones }) {
-  // Validar consumo
   const consumosValidos = ['sin_consumo', 'con_consumo', 'captura', 'pendiente'];
   if (consumo && !consumosValidos.includes(consumo)) {
     throw new Error('Estado de consumo inválido.');

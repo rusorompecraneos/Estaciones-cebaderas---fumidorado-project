@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/styles.css"/>
+  <style>
+    .page { min-height:100vh; background:var(--color-bg); display:flex; flex-direction:column; }
+
+    .topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:var(--space-4) var(--space-8);
+      background:var(--color-surface); border-bottom:1px solid var(--color-border);
+      position:sticky; top:0; z-index:50;
+    }
+    .topbar__left  { display:flex; align-items:center; gap:var(--space-4); }
+    .topbar__back  {
+      display:flex; align-items:center; gap:var(--space-2);
+      color:var(--color-text-muted); text-decoration:none;
+      transition:color var(--transition-fast);
+    }
+    .topbar__back:hover { color:var(--color-gold); }
+    .topbar__title { font-family:var(--font-display); font-size:var(--text-lg); font-weight:var(--weight-semi); }
+    .topbar__sub   { font-size:var(--text-xs); color:var(--color-text-muted); }
+
+    .page-content {
+      flex:1; max-width:1100px; width:100%;
+      margin:0 auto; padding:var(--space-8) var(--space-6);
+      display:flex; flex-direction:column; gap:var(--space-6);
+    }
+
+    /* ── Upload card ── */
+    .upload-card {
+      background:var(--color-surface);
+      border:1px solid var(--color-border-gold);
+      border-radius:var(--radius-xl);
+      padding:var(--space-7);
+    }
+    .upload-card__title {
+      font-family:var(--font-display); font-size:var(--text-lg);
+      font-weight:var(--weight-semi); margin-bottom:var(--space-5);
+      padding-bottom:var(--space-4); border-bottom:1px solid var(--color-border);
+    }
+    .upload-form { display:flex; flex-direction:column; gap:var(--space-4); }
+    .form-row    { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); }
+
+    /* Drop zone */
+    .drop-zone {
+      border:2px dashed var(--color-border);
+      border-radius:var(--radius-lg);
+      padding:var(--space-8);
+      text-align:center;
+      cursor:pointer;
+      transition:border-color var(--transition-base), background var(--transition-base);
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color:var(--color-gold);
+      background:var(--color-gold-muted);
+    }
+    .drop-zone__icon  { font-size:2rem; margin-bottom:var(--space-3); }
+    .drop-zone__text  { font-size:var(--text-sm); color:var(--color-text-muted); }
+    .drop-zone__hint  { font-size:var(--text-xs); color:var(--color-text-faint); margin-top:var(--space-1); }
+    .drop-zone__name  {
+      margin-top:var(--space-3); font-size:var(--text-sm);
+      color:var(--color-gold); font-weight:var(--weight-medium);
+      display:none;
+    }
+    .drop-zone__name.visible { display:block; }
+
+    /* ── Tabla diagramas ── */
+    .section-header {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:var(--space-4);
+    }
+    .section-title {
+      font-family:var(--font-display); font-size:var(--text-lg);
+      font-weight:var(--weight-semi);
+    }
+
+    .table-wrapper { border:1px solid var(--color-border-gold); border-radius:var(--radius-lg); overflow:hidden; }
+    table { width:100%; border-collapse:collapse; font-size:var(--text-sm); }
+    thead { background:var(--color-surface-2); }
+    thead th {
+      padding:var(--space-3) var(--space-5); text-align:left;
+      font-family:var(--font-display); font-weight:var(--weight-semi);
+      font-size:var(--text-xs); color:var(--color-text-muted);
+      text-transform:uppercase; letter-spacing:.06em;
+      border-bottom:1px solid var(--color-border);
+    }
+    tbody tr { border-bottom:1px solid var(--color-border); transition:background var(--transition-fast); }
+    tbody tr:last-child { border-bottom:none; }
+    tbody tr:hover { background:var(--color-gold-muted); }
+    tbody td { padding:var(--space-4) var(--space-5); color:var(--color-text); vertical-align:middle; }
+    .td-muted { color:var(--color-text-muted); }
+
+    .tbl-actions { display:flex; align-items:center; gap:var(--space-2); }
+    .btn-icon {
+      width:32px; height:32px; border-radius:var(--radius-sm);
+      border:1px solid var(--color-border); background:var(--color-surface-2);
+      color:var(--color-text-muted); display:inline-flex;
+      align-items:center; justify-content:center;
+      cursor:pointer; transition:all var(--transition-fast);
+      text-decoration:none;
+    }
+    .btn-icon:hover          { border-color:var(--color-gold);  color:var(--color-gold);  }
+    .btn-icon--danger:hover  { border-color:var(--color-error); color:var(--color-error); }
+    .btn-icon--info:hover    { border-color:var(--color-info);  color:var(--color-info);  }
+
+    /* Modal confirmar eliminar */
+    .modal-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.75);
+      backdrop-filter:blur(4px);
+      display:flex; align-items:center; justify-content:center;
+      z-index:9999; padding:var(--space-6);
+      opacity:0; pointer-events:none;
+      transition:opacity var(--transition-base);
+    }
+    .modal-overlay.active { opacity:1; pointer-events:all; }
+    .modal {
+      width:100%; max-width:420px; text-align:center;
+      background:var(--color-surface); border:1px solid var(--color-border-gold);
+      border-radius:var(--radius-xl); padding:var(--space-8);
+      transform:translateY(16px); transition:transform var(--transition-base);
+      box-shadow:var(--shadow-lg);
+    }
+    .modal-overlay.active .modal { transform:translateY(0); }
+    .modal__icon {
+      width:52px; height:52px; margin:0 auto var(--space-4);
+      background:rgba(224,82,82,.1); border:2px solid rgba(224,82,82,.3);
+      border-radius:50%; display:flex; align-items:center; justify-content:center;
+      color:var(--color-error);
+    }
+    .modal__title { font-family:var(--font-display); font-size:var(--text-lg); font-weight:var(--weight-semi); margin-bottom:var(--space-2); }
+    .modal__desc  { font-size:var(--text-sm); color:var(--color-text-muted); margin-bottom:var(--space-6); }
+    .modal__actions { display:flex; gap:var(--space-3); justify-content:center; }
+
+    /* Alert upload */
+    .upload-alert { padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); font-size:var(--text-sm); display:none; }
+    .upload-alert.error   { background:rgba(224,82,82,.1); border:1px solid rgba(224,82,82,.3); color:var(--color-error); }
+    .upload-alert.success { background:rgba(61,186,122,.1); border:1px solid rgba(61,186,122,.3); color:var(--color-success); }
+    .upload-alert.visible { display:block; }
+
+    /* Spinner */
+    .btn-spinner { width:14px; height:14px; border:2px solid rgba(17,17,16,.25); border-top-color:#111; border-radius:50%; animation:spin .7s linear infinite; display:none; }
+    .btn-spinner.visible { display:inline-block; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .puntos-badge {
+      display:inline-flex; align-items:center; gap:var(--space-1);
+      padding:2px var(--space-2); background:var(--color-gold-muted);
+      border:1px solid var(--color-border-gold); border-radius:var(--radius-full);
+      font-size:var(--text-xs); color:var(--color-gold); font-weight:var(--weight-medium);
+    }
+
+    .empty-row td { text-align:center; padding:var(--space-10); color:var(--color-text-faint); font-size:var(--text-sm); }
+
+    @media(max-width:768px) {
+      .form-row { grid-template-columns:1fr; }
+      .page-content { padding:var(--space-4); }
+      .topbar { padding:var(--space-4); }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header class="topbar">
+    <div class="topbar__left">
+      <a href="/admin/dashboard" class="topbar__back">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </a>
+      <div>
+        <div class="topbar__title">Diagramas UPC</div>
+        <div class="topbar__sub">Sube y configura los planos por sede</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <!-- ── Subir nuevo diagrama ── -->
+    <div class="upload-card">
+      <h2 class="upload-card__title">📄 Subir nuevo diagrama UPC</h2>
+      <div class="upload-alert" id="upload-alert"></div>
+      <div class="upload-form" id="upload-form">
+
+        <div class="form-row">
+          <!-- Cliente -->
+          <div class="form-group">
+            <label class="form-label">Cliente *</label>
+            <select class="form-control" id="up-cliente">
+              <option value="" disabled selected>— Seleccione —</option>
+              <% clientes.forEach(c => { %>
+                <option value="<%= c.id %>"><%= c.codigo %> — <%= c.nombre %></option>
+              <% }) %>
+            </select>
+          </div>
+
+          <!-- Sede -->
+          <div class="form-group">
+            <label class="form-label">Sede *</label>
+            <select class="form-control" id="up-sede" disabled>
+              <option value="" disabled selected>— Primero seleccione cliente —</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Nombre descriptivo -->
+        <div class="form-group">
+          <label class="form-label">Nombre del diagrama *</label>
+          <input class="form-control" type="text" id="up-nombre"
+                 placeholder="Ej: Diagrama UPC — Hangar T A.S.B v2"/>
+        </div>
+
+        <!-- Drop zone -->
+        <div class="drop-zone" id="drop-zone">
+          <div class="drop-zone__icon">📋</div>
+          <div class="drop-zone__text">Arrastra el PDF aquí o haz clic para seleccionarlo</div>
+          <div class="drop-zone__hint">Solo archivos PDF · Máximo 20MB</div>
+          <div class="drop-zone__name" id="file-name"></div>
+          <input type="file" id="up-file" accept=".pdf" style="display:none"/>
+        </div>
+
+        <button class="btn btn--primary btn--lg" id="btn-subir" type="button" disabled>
+          <span id="subir-text">Subir diagrama</span>
+          <span class="btn-spinner" id="subir-spinner"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Lista de diagramas ── -->
+    <section>
+      <div class="section-header">
+        <div class="section-title">Diagramas registrados</div>
+        <span style="font-size:var(--text-xs);color:var(--color-text-muted);">
+          <%= diagramas.length %> diagrama<%= diagramas.length !== 1 ? 's' : '' %>
+        </span>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Cliente</th>
+              <th>Sede</th>
+              <th>Puntos</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-diagramas">
+            <% if (diagramas.length === 0) { %>
+              <tr class="empty-row"><td colspan="6">No hay diagramas registrados aún.</td></tr>
+            <% } %>
+            <% diagramas.forEach(d => { %>
+              <tr id="row-d-<%= d.id %>">
+                <td><strong><%= d.nombre %></strong></td>
+                <td class="td-muted"><%= d.cliente_codigo %> — <%= d.cliente_nombre %></td>
+                <td class="td-muted"><%= d.sede_codigo %> — <%= d.sede_nombre %></td>
+                <td>
+                  <span class="puntos-badge">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                    </svg>
+                    <%= d.total_puntos %> puntos
+                  </span>
+                </td>
+                <td class="td-muted">
+                  <%= new Date(d.created_at).toLocaleDateString('es-CO') %>
+                </td>
+                <td>
+                  <div class="tbl-actions">
+                    <!-- Configurar puntos -->
+                    <a class="btn-icon btn-icon--info" href="/admin/diagramas/<%= d.id %>/configurar" title="Configurar puntos">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+                      </svg>
+                    </a>
+                    <!-- Ver PDF -->
+                    <a class="btn-icon" href="/admin/diagramas/<%= d.id %>/pdf" target="_blank" title="Ver PDF">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                      </svg>
+                    </a>
+                    <!-- Eliminar -->
+                    <button class="btn-icon btn-icon--danger" title="Eliminar"
+                            onclick="openDelete(<%= d.id %>, '<%= d.nombre.replace(/'/g,"\\'") %>')">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-1 14H6L5 6"/>
+                        <path d="M10 11v6M14 11v6"/>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Modal confirmar eliminar -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal">
+    <div class="modal__icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+      </svg>
+    </div>
+    <h2 class="modal__title">¿Eliminar diagrama?</h2>
+    <p class="modal__desc" id="delete-desc">Esta acción no se puede deshacer.</p>
+    <div class="modal__actions">
+      <button class="btn btn--secondary" onclick="closeDelete()">Cancelar</button>
+      <button class="btn btn--danger"    onclick="confirmDelete()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sedes por cliente (data para JS) -->
+<script>
+const SEDES_POR_CLIENTE = <%- JSON.stringify(sedesPorCliente) %>;
+</script>
+
+<script>
+// ── Cliente → Sedes ───────────────────────────────────────────────────────────
+const clienteSelect = document.getElementById('up-cliente');
+const sedeSelect    = document.getElementById('up-sede');
+const btnSubir      = document.getElementById('btn-subir');
+
+clienteSelect.addEventListener('change', function () {
+  const sedes = SEDES_POR_CLIENTE[this.value] || [];
+  sedeSelect.innerHTML = '<option value="" disabled selected>— Seleccione sede —</option>';
+  sedes.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = `${s.codigo} — ${s.nombre}`;
+    sedeSelect.appendChild(opt);
+  });
+  sedeSelect.disabled = sedes.length === 0;
+  checkForm();
+});
+
+sedeSelect.addEventListener('change', checkForm);
+document.getElementById('up-nombre').addEventListener('input', checkForm);
+
+function checkForm() {
+  const ok = clienteSelect.value && sedeSelect.value &&
+             document.getElementById('up-nombre').value.trim() &&
+             document.getElementById('up-file').files.length > 0;
+  btnSubir.disabled = !ok;
+}
+
+// ── Drop zone ─────────────────────────────────────────────────────────────────
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('up-file');
+const fileName  = document.getElementById('file-name');
+
+dropZone.addEventListener('click', () => fileInput.click());
+
+dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type === 'application/pdf') setFile(file);
+  else showAlert('error', 'Solo se permiten archivos PDF.');
+});
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) setFile(fileInput.files[0]);
+});
+
+function setFile(file) {
+  // Crear un nuevo DataTransfer para asignar el archivo arrastrado al input
+  const dt = new DataTransfer();
+  dt.items.add(file);
+  fileInput.files = dt.files;
+
+  fileName.textContent = `📎 ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`;
+  fileName.classList.add('visible');
+  checkForm();
+}
+
+// ── Subir ─────────────────────────────────────────────────────────────────────
+btnSubir.addEventListener('click', async function () {
+  hideAlert();
+  document.getElementById('subir-spinner').classList.add('visible');
+  document.getElementById('subir-text').textContent = 'Subiendo...';
+  btnSubir.disabled = true;
+
+  const formData = new FormData();
+  formData.append('pdf',    fileInput.files[0]);
+  formData.append('sedeId', sedeSelect.value);
+  formData.append('nombre', document.getElementById('up-nombre').value.trim());
+
+  try {
+    const res  = await fetch('/admin/diagramas', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (!data.success) {
+      showAlert('error', data.message || 'Error al subir.');
+    } else {
+      showAlert('success',
+        data.replaced
+          ? '✅ Diagrama actualizado correctamente. Puedes configurar los puntos.'
+          : '✅ Diagrama subido correctamente. Ahora configura los puntos del mapa.'
+      );
+      setTimeout(() => {
+        window.location.href = `/admin/diagramas/${data.diagramaId}/configurar`;
+      }, 1500);
+    }
+  } catch {
+    showAlert('error', 'Error de conexión. Intente nuevamente.');
+  } finally {
+    document.getElementById('subir-spinner').classList.remove('visible');
+    document.getElementById('subir-text').textContent = 'Subir diagrama';
+    btnSubir.disabled = false;
+  }
+});
+
+function showAlert(type, msg) {
+  const el = document.getElementById('upload-alert');
+  el.textContent = msg;
+  el.className = `upload-alert ${type} visible`;
+}
+function hideAlert() {
+  const el = document.getElementById('upload-alert');
+  el.className = 'upload-alert';
+}
+
+// ── Eliminar ──────────────────────────────────────────────────────────────────
+let _deleteId = null;
+
+function openDelete(id, nombre) {
+  _deleteId = id;
+  document.getElementById('delete-desc').textContent =
+    `¿Eliminar "${nombre}"? Se borrarán también todos sus puntos configurados.`;
+  document.getElementById('modal-delete').classList.add('active');
+}
+function closeDelete() {
+  document.getElementById('modal-delete').classList.remove('active');
+}
+async function confirmDelete() {
+  const res  = await fetch(`/admin/diagramas/${_deleteId}`, { method: 'DELETE' });
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById(`row-d-${_deleteId}`)?.remove();
+    closeDelete();
+  } else {
+    alert(data.message || 'Error al eliminar.');
+  }
+}
+
+document.getElementById('modal-delete').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeDelete();
+});
+</script>
+
+</body>
+</html>

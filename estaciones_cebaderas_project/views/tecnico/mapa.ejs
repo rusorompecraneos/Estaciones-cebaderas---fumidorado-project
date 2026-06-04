@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mapa UPC — <%= visita.sede_nombre %></title>
+  <link rel="stylesheet" href="/css/styles.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--color-bg); color:var(--color-text); font-family:var(--font-body); min-height:100vh; display:flex; flex-direction:column; }
+
+    /* ── Topbar ── */
+    .topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:var(--space-4) var(--space-6);
+      background:var(--color-surface); border-bottom:1px solid var(--color-border);
+      position:sticky; top:0; z-index:100; flex-shrink:0;
+    }
+    .topbar__left  { display:flex; align-items:center; gap:var(--space-4); }
+    .topbar__back  { display:flex; align-items:center; gap:var(--space-2); color:var(--color-text-muted); text-decoration:none; transition:color var(--transition-fast); }
+    .topbar__back:hover { color:var(--color-gold); }
+    .topbar__title { font-family:var(--font-display); font-size:var(--text-md); font-weight:var(--weight-semi); }
+    .topbar__sub   { font-size:var(--text-xs); color:var(--color-text-muted); }
+
+    /* ── Layout ── */
+    .layout { flex:1; display:flex; overflow:hidden; height:calc(100vh - 64px); }
+
+    /* ── Panel izquierdo — mini lista ── */
+    .mini-list {
+      width:220px; flex-shrink:0;
+      background:var(--color-surface); border-right:1px solid var(--color-border);
+      overflow-y:auto; padding:var(--space-4);
+      display:flex; flex-direction:column; gap:var(--space-2);
+    }
+    .mini-list__title {
+      font-family:var(--font-display); font-size:var(--text-xs);
+      font-weight:var(--weight-semi); letter-spacing:.08em;
+      text-transform:uppercase; color:var(--color-text-faint);
+      margin-bottom:var(--space-2);
+    }
+    .mini-item {
+      display:flex; align-items:center; gap:var(--space-2);
+      padding:var(--space-2) var(--space-3);
+      border-radius:var(--radius-md);
+      border:1px solid var(--color-border);
+      background:var(--color-surface-2);
+      cursor:pointer;
+      transition:border-color var(--transition-fast), background var(--transition-fast);
+      font-size:var(--text-xs);
+    }
+    .mini-item:hover     { border-color:var(--color-gold); background:var(--color-gold-muted); }
+    .mini-item.highlight { border-color:var(--color-gold); background:var(--color-gold-muted); }
+    .mini-dot {
+      width:10px; height:10px; border-radius:50%; flex-shrink:0;
+    }
+    .mini-num  { font-weight:var(--weight-semi); color:var(--color-text); }
+    .mini-tipo { color:var(--color-text-muted); flex:1; }
+
+    /* ── Área del mapa ── */
+    .map-area {
+      flex:1; overflow:auto;
+      background:#1a1a18;
+      display:flex; align-items:flex-start; justify-content:center;
+      padding:var(--space-6);
+    }
+    .map-wrap {
+      position:relative;
+      display:inline-block;
+      box-shadow:var(--shadow-lg);
+    }
+    #pdf-canvas { display:block; }
+
+    /* Puntos interactivos */
+    .mapa-punto {
+      position:absolute;
+      width:30px; height:30px;
+      border-radius:50%;
+      border:2.5px solid white;
+      display:flex; align-items:center; justify-content:center;
+      font-size:11px; font-weight:700; color:white;
+      transform:translate(-50%, -50%);
+      cursor:pointer;
+      user-select:none;
+      box-shadow:0 2px 8px rgba(0,0,0,.4);
+      transition:box-shadow .15s, transform .15s;
+      z-index:10;
+    }
+    .mapa-punto:hover    { transform:translate(-50%,-50%) scale(1.18); box-shadow:0 0 0 4px rgba(255,255,255,.2); }
+    .mapa-punto.pendiente   { background:#555450; }
+    .mapa-punto.sin_consumo { background:#3B9B5C; }
+    .mapa-punto.con_consumo { background:#D94F4F; }
+    .mapa-punto.captura     { background:#E09B35; }
+    .mapa-punto.highlight   { box-shadow:0 0 0 5px rgba(240,200,48,.7); }
+
+    /* Tooltip del punto */
+    .punto-tooltip {
+      position:absolute;
+      background:var(--color-surface);
+      border:1px solid var(--color-border-gold);
+      border-radius:var(--radius-md);
+      padding:var(--space-3) var(--space-4);
+      min-width:160px;
+      box-shadow:var(--shadow-md);
+      z-index:50;
+      pointer-events:none;
+      display:none;
+    }
+    .punto-tooltip.visible { display:block; }
+    .tooltip-title { font-family:var(--font-display); font-size:var(--text-sm); font-weight:var(--weight-semi); margin-bottom:var(--space-2); }
+    .tooltip-btns  { display:flex; flex-direction:column; gap:var(--space-1); pointer-events:all; }
+    .tooltip-btn {
+      padding:var(--space-2) var(--space-3);
+      border-radius:var(--radius-sm);
+      border:1px solid var(--color-border);
+      background:var(--color-surface-2);
+      color:var(--color-text-muted);
+      font-size:var(--text-xs); cursor:pointer;
+      display:flex; align-items:center; gap:var(--space-2);
+      transition:all var(--transition-fast);
+    }
+    .tooltip-btn:hover { border-color:var(--color-gold); color:var(--color-text); }
+    .tooltip-btn .dot  { width:8px; height:8px; border-radius:50%; }
+    .dot-sc  { background:#3B9B5C; }
+    .dot-cc  { background:#D94F4F; }
+    .dot-cap { background:#E09B35; }
+
+    /* ── Leyenda ── */
+    .leyenda {
+      position:absolute; bottom:var(--space-4); right:var(--space-4);
+      background:rgba(17,17,16,.85); backdrop-filter:blur(8px);
+      border:1px solid var(--color-border);
+      border-radius:var(--radius-lg);
+      padding:var(--space-3) var(--space-4);
+      display:flex; flex-direction:column; gap:var(--space-2);
+      z-index:30;
+    }
+    .leyenda-item { display:flex; align-items:center; gap:var(--space-2); font-size:11px; color:var(--color-text-muted); }
+    .leyenda-dot  { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+    /* PDF loading */
+    .pdf-loading {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:var(--space-4); padding:var(--space-12);
+      color:var(--color-text-muted); font-size:var(--text-sm);
+    }
+    .pdf-spinner { width:32px; height:32px; border:3px solid var(--color-border); border-top-color:var(--color-gold); border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* Sin diagrama */
+    .no-diagrama {
+      flex:1; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      gap:var(--space-4); color:var(--color-text-muted); text-align:center;
+    }
+    .no-diagrama__icon { font-size:3rem; }
+    .no-diagrama__title { font-family:var(--font-display); font-size:var(--text-lg); color:var(--color-text); }
+    .no-diagrama__desc { font-size:var(--text-sm); max-width:360px; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__left">
+    <a href="/tecnico/visita/<%= visita.id %>" class="topbar__back">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </a>
+    <div>
+      <div class="topbar__title">Mapa UPC</div>
+      <div class="topbar__sub">
+        <%= visita.cliente_codigo %> — <%= visita.cliente_nombre %> &nbsp;·&nbsp;
+        Sede <%= visita.sede_codigo %>
+      </div>
+    </div>
+  </div>
+</header>
+
+<% if (!diagrama) { %>
+  <!-- Sin diagrama configurado -->
+  <div class="no-diagrama">
+    <div class="no-diagrama__icon">🗺️</div>
+    <div class="no-diagrama__title">Sin diagrama configurado</div>
+    <p class="no-diagrama__desc">
+      El administrador aún no ha subido el diagrama UPC para esta sede.
+      Cuando lo configure, aparecerá aquí con todos los puntos interactivos.
+    </p>
+    <a href="/tecnico/visita/<%= visita.id %>" class="btn btn--secondary">
+      Volver a la visita
+    </a>
+  </div>
+
+<% } else { %>
+  <div class="layout">
+
+    <!-- Mini lista lateral -->
+    <aside class="mini-list">
+      <div class="mini-list__title">Estaciones (<%= estaciones.length %>)</div>
+      <% estaciones.forEach(est => { %>
+        <div class="mini-item" id="mini-<%= est.id %>"
+             onclick="highlightPunto(<%= est.numero %>)">
+          <div class="mini-dot <%= est.consumo || 'pendiente' %>"
+               style="background:<%= est.consumo === 'sin_consumo' ? '#3B9B5C' : est.consumo === 'con_consumo' ? '#D94F4F' : est.consumo === 'captura' ? '#E09B35' : '#555450' %>">
+          </div>
+          <span class="mini-num">E<%= est.numero %></span>
+          <span class="mini-tipo">
+            <%= est.tipo === 'quimica' ? 'Química' : est.tipo === 'mecanica' ? 'Mecánica' : 'Ecológica' %>
+          </span>
+        </div>
+      <% }) %>
+    </aside>
+
+    <!-- Mapa -->
+    <div class="map-area">
+      <div class="map-wrap" id="map-wrap" style="display:inline-block;">
+        <div class="pdf-loading" id="pdf-loading">
+          <div class="pdf-spinner"></div>
+          <span>Cargando diagrama...</span>
+        </div>
+        <canvas id="pdf-canvas" style="display:none;"></canvas>
+
+        <!-- Leyenda -->
+        <div class="leyenda">
+          <div class="leyenda-item"><div class="leyenda-dot" style="background:#555450;"></div>Sin revisar</div>
+          <div class="leyenda-item"><div class="leyenda-dot" style="background:#3B9B5C;"></div>Sin consumo</div>
+          <div class="leyenda-item"><div class="leyenda-dot" style="background:#D94F4F;"></div>Con consumo</div>
+          <div class="leyenda-item"><div class="leyenda-dot" style="background:#E09B35;"></div>Captura</div>
+        </div>
+      </div>
+
+      <!-- Tooltip flotante -->
+      <div class="punto-tooltip" id="punto-tooltip">
+        <div class="tooltip-title" id="tooltip-title">E1</div>
+        <div class="tooltip-btns" id="tooltip-btns"></div>
+      </div>
+    </div>
+
+  </div>
+<% } %>
+
+<% if (diagrama) { %>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const VISITA_ID  = '<%= visita.id %>';
+const PDF_URL    = '/admin/diagramas/<%= diagrama.id %>/pdf';
+
+// Estado de estaciones: { numero: { id, consumo, tipo } }
+const ESTACIONES = <%- JSON.stringify(
+  estaciones.reduce((acc, e) => {
+    acc[e.numero] = { id: e.id, consumo: e.consumo || 'pendiente', tipo: e.tipo };
+    return acc;
+  }, {})
+) %>;
+
+// Puntos del diagrama: [{ numero, tipo, x_pct, y_pct }]
+const PUNTOS = <%- JSON.stringify(puntos) %>;
+
+const canvas  = document.getElementById('pdf-canvas');
+const ctx     = canvas.getContext('2d');
+const mapWrap = document.getElementById('map-wrap');
+const tooltip = document.getElementById('punto-tooltip');
+
+async function loadPDF() {
+  const pdf  = await pdfjsLib.getDocument(PDF_URL).promise;
+  const page = await pdf.getPage(1);
+  const viewport = page.getViewport({ scale: 1.5 });
+
+  canvas.width  = viewport.width;
+  canvas.height = viewport.height;
+
+  await page.render({ canvasContext: ctx, viewport }).promise;
+
+  document.getElementById('pdf-loading').style.display = 'none';
+  canvas.style.display = 'block';
+
+  renderPuntos();
+}
+
+loadPDF();
+
+// ── Renderizar puntos ────────────────────────────────────────────────────────
+function renderPuntos() {
+  document.querySelectorAll('.mapa-punto').forEach(el => el.remove());
+
+  PUNTOS.forEach(p => {
+    const est   = ESTACIONES[p.numero];
+    const estado = est ? est.consumo : 'pendiente';
+
+    const dot = document.createElement('div');
+    dot.className    = `mapa-punto ${estado}`;
+    dot.id           = `dot-${p.numero}`;
+    dot.textContent  = p.numero;
+    dot.style.left   = `${p.x_pct}%`;
+    dot.style.top    = `${p.y_pct}%`;
+
+    dot.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showTooltip(p.numero, e.clientX, e.clientY);
+    });
+
+    mapWrap.appendChild(dot);
+  });
+}
+
+// ── Tooltip con opciones de consumo ──────────────────────────────────────────
+let activeNum = null;
+
+function showTooltip(numero, clientX, clientY) {
+  activeNum = numero;
+  const est   = ESTACIONES[numero];
+  const tipos = { quimica:'Química', mecanica:'Mecánica', ecologica:'Ecológica' };
+
+  document.getElementById('tooltip-title').textContent =
+    `E${numero} — ${tipos[est?.tipo] || ''}`;
+
+  const btns = document.getElementById('tooltip-btns');
+  btns.innerHTML = `
+    <button class="tooltip-btn" onclick="setConsumo(${numero},'sin_consumo')">
+      <span class="dot dot-sc"></span> Sin consumo
+    </button>
+    <button class="tooltip-btn" onclick="setConsumo(${numero},'con_consumo')">
+      <span class="dot dot-cc"></span> Con consumo
+    </button>
+    <button class="tooltip-btn" onclick="setConsumo(${numero},'captura')">
+      <span class="dot dot-cap"></span> Hubo captura
+    </button>`;
+
+  // Posicionar tooltip cerca del cursor
+  tooltip.style.display = 'block';
+  tooltip.classList.add('visible');
+
+  const mapRect = mapWrap.getBoundingClientRect();
+  let tx = clientX - mapRect.left + 16;
+  let ty = clientY - mapRect.top  - 20;
+  if (tx + 180 > mapRect.width)  tx -= 200;
+  if (ty + 120 > mapRect.height) ty -= 130;
+  tooltip.style.left = `${tx}px`;
+  tooltip.style.top  = `${ty}px`;
+  tooltip.style.position = 'absolute';
+  mapWrap.appendChild(tooltip);
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.mapa-punto') && !e.target.closest('.punto-tooltip')) {
+    tooltip.classList.remove('visible');
+    activeNum = null;
+    document.querySelectorAll('.mapa-punto').forEach(d => d.classList.remove('highlight'));
+  }
+});
+
+// ── Actualizar consumo ────────────────────────────────────────────────────────
+async function setConsumo(numero, consumo) {
+  const est = ESTACIONES[numero];
+  if (!est) return;
+
+  tooltip.classList.remove('visible');
+
+  // Actualizar local
+  ESTACIONES[numero].consumo = consumo;
+
+  // Actualizar dot en mapa
+  const dot = document.getElementById(`dot-${numero}`);
+  if (dot) {
+    dot.className = `mapa-punto ${consumo}`;
+  }
+
+  // Actualizar mini-item en lista lateral
+  updateMiniItem(est.id, consumo);
+
+  // Persistir en DB
+  await fetch(`/tecnico/estacion/${est.id}`, {
+    method:  'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ consumo }),
+  });
+}
+
+function updateMiniItem(estId, consumo) {
+  const colorMap = {
+    sin_consumo: '#3B9B5C',
+    con_consumo: '#D94F4F',
+    captura:     '#E09B35',
+    pendiente:   '#555450',
+  };
+  // Buscar el mini-item por número en la lista lateral
+  Object.entries(ESTACIONES).forEach(([num, est]) => {
+    if (est.id === estId) {
+      const dot = document.querySelector(`#mini-${estId} .mini-dot`);
+      if (dot) dot.style.background = colorMap[consumo] || colorMap.pendiente;
+    }
+  });
+}
+
+// ── Highlight desde lista lateral ────────────────────────────────────────────
+function highlightPunto(numero) {
+  document.querySelectorAll('.mapa-punto').forEach(d => d.classList.remove('highlight'));
+  const dot = document.getElementById(`dot-${numero}`);
+  if (dot) {
+    dot.classList.add('highlight');
+    dot.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    setTimeout(() => dot.classList.remove('highlight'), 2500);
+  }
+}
+</script>
+<% } %>
+
+</body>
+</html>

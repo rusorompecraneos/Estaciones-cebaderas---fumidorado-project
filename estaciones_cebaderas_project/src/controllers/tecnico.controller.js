@@ -1,7 +1,6 @@
 // src/controllers/tecnico.controller.js
 
 import * as tecnicoService from '../services/tecnico.service.js';
-import * as repo           from '../repositories/tecnico.repository.js';
 import { guardarFoto, eliminarFoto } from '../services/tecnico.service.js';
 import path  from 'path';
 import fs    from 'fs';
@@ -56,7 +55,7 @@ export async function iniciarVisita(req, res) {
   }
 
   try {
-    const visitaId = await tecnicoService.iniciarVisita({ tecnicoId, sedeId });
+    const { visitaId } = await tecnicoService.iniciarVisita({ tecnicoId, sedeId });
     return res.redirect(`/tecnico/visita/${visitaId}`);
   } catch (err) {
     console.error('[tecnico.controller] iniciarVisita:', err);
@@ -67,23 +66,23 @@ export async function iniciarVisita(req, res) {
 // ── GET /tecnico/visita/:visitaId ─────────────────────────────────────────────
 export async function showVisita(req, res) {
   try {
-    const { visita, estaciones } = await tecnicoService.getVisitaDetalle(req.params.visitaId);
+    const { visita, estaciones, diagrama, puntos } =
+      await tecnicoService.getVisitaDetalle(req.params.visitaId);
 
     if (!visita) return res.redirect('/tecnico/dashboard');
-
-    // Solo el técnico dueño puede ver su visita
-    if (visita.tecnico_id !== req.session.user.id) {
-      return res.redirect('/tecnico/dashboard');
-    }
+    if (visita.tecnico_id !== req.session.user.id) return res.redirect('/tecnico/dashboard');
 
     return res.render('tecnico/visita', {
       title:       `Visita — ${visita.sede_nombre}`,
       currentUser: req.session.user,
       visita,
       estaciones,
-      tipos:       tecnicoService.TIPOS_ESTACION,
-      consumos:    tecnicoService.ESTADOS_CONSUMO,
-      novedades:   tecnicoService.NOVEDADES,
+      diagrama,      // puede ser null si no hay diagrama
+      puntos,        // puntos del diagrama para el mapa
+      tipos:         tecnicoService.TIPOS_ESTACION,
+      consumos:      tecnicoService.ESTADOS_CONSUMO,
+      novedades:     tecnicoService.NOVEDADES,
+      tieneDiagrama: !!diagrama,
     });
   } catch (err) {
     console.error('[tecnico.controller] showVisita:', err);
@@ -91,7 +90,7 @@ export async function showVisita(req, res) {
   }
 }
 
-// ── POST /tecnico/visita/:visitaId/estacion  (AJAX — agregar estación) ─────────
+// ── POST /tecnico/visita/:visitaId/estacion  (AJAX) ───────────────────────────
 export async function agregarEstacion(req, res) {
   const { tipo } = req.body;
   try {
@@ -105,12 +104,12 @@ export async function agregarEstacion(req, res) {
   }
 }
 
-// ── PATCH /tecnico/estacion/:id  (AJAX — actualizar estado) ───────────────────
+// ── PATCH /tecnico/estacion/:id  (AJAX) ───────────────────────────────────────
 export async function actualizarEstacion(req, res) {
   const { consumo, repone, novedad, observaciones } = req.body;
   try {
     await tecnicoService.actualizarEstacion({
-      id:  req.params.id,
+      id: req.params.id,
       consumo,
       repone: repone === undefined ? null : repone === 'true',
       novedad,
@@ -122,7 +121,7 @@ export async function actualizarEstacion(req, res) {
   }
 }
 
-// ── DELETE /tecnico/estacion/:id  (AJAX) ─────────────────────────────────────
+// ── DELETE /tecnico/estacion/:id  (AJAX) ──────────────────────────────────────
 export async function eliminarEstacion(req, res) {
   try {
     await tecnicoService.eliminarEstacion(req.params.id);
@@ -132,7 +131,7 @@ export async function eliminarEstacion(req, res) {
   }
 }
 
-// ── POST /tecnico/estacion/:id/foto  (AJAX — subir foto) ──────────────────────
+// ── POST /tecnico/estacion/:id/foto  (AJAX) ───────────────────────────────────
 export async function subirFoto(req, res) {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'No se recibió ninguna foto.' });
@@ -155,7 +154,7 @@ export async function subirFoto(req, res) {
   }
 }
 
-// ── DELETE /tecnico/foto/:id  (AJAX) ─────────────────────────────────────────
+// ── DELETE /tecnico/foto/:id  (AJAX) ──────────────────────────────────────────
 export async function borrarFoto(req, res) {
   try {
     const foto = await eliminarFoto(req.params.id);
