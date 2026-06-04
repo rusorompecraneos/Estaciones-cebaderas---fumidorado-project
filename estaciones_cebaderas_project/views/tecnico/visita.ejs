@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/styles.css"/>
+  <style>
+    /* ── Layout ── */
+    .visita-page { min-height: 100vh; background: var(--color-bg); display: flex; flex-direction: column; }
+
+    /* ── Topbar ── */
+    .dash-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--space-4) var(--space-8);
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .dash-topbar__brand { display: flex; align-items: center; gap: var(--space-3); }
+    .dash-topbar__logo {
+      width: 38px; height: 38px; background: var(--color-gold);
+      border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: var(--weight-bold); font-size: var(--text-sm); color: #111;
+    }
+    .dash-topbar__name { font-family: var(--font-display); font-size: var(--text-md); font-weight: var(--weight-semi); }
+    .dash-topbar__sub  { font-size: var(--text-xs); color: var(--color-text-muted); }
+    .topbar-actions { display: flex; align-items: center; gap: var(--space-3); }
+    .btn-back {
+      display: flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      background: transparent;
+      color: var(--color-text-muted); font-size: var(--text-xs);
+      font-family: var(--font-display); font-weight: var(--weight-medium);
+      cursor: pointer; text-decoration: none;
+      transition: all var(--transition-fast);
+    }
+    .btn-back:hover { border-color: var(--color-border-gold); color: var(--color-gold); }
+
+    /* ── Contenido ── */
+    .visita-content {
+      flex: 1;
+      max-width: 860px; width: 100%;
+      margin: 0 auto;
+      padding: var(--space-8) var(--space-6);
+      display: flex; flex-direction: column; gap: var(--space-6);
+    }
+
+    /* ── Info de visita ── */
+    .visita-info {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-gold);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5) var(--space-6);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: var(--space-4); flex-wrap: wrap;
+    }
+    .visita-info__left { display: flex; flex-direction: column; gap: var(--space-1); }
+    .visita-info__title {
+      font-family: var(--font-display); font-size: var(--text-lg);
+      font-weight: var(--weight-semi); color: var(--color-text);
+    }
+    .visita-info__meta { font-size: var(--text-sm); color: var(--color-text-muted); }
+    .visita-info__meta span { color: var(--color-gold); font-weight: var(--weight-medium); }
+
+    /* ── Leyenda de colores ── */
+    .leyenda {
+      display: flex; align-items: center; gap: var(--space-5);
+      flex-wrap: wrap;
+    }
+    .leyenda__item { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); color: var(--color-text-muted); }
+    .leyenda__dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── Agregar estación ── */
+    .add-station-bar {
+      display: flex; align-items: center; gap: var(--space-3);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4) var(--space-5);
+      flex-wrap: wrap;
+    }
+    .add-station-bar__label {
+      font-size: var(--text-sm); color: var(--color-text-muted);
+      font-family: var(--font-display); font-weight: var(--weight-medium);
+      white-space: nowrap;
+    }
+    .add-station-bar select {
+      flex: 1; min-width: 160px;
+    }
+
+    /* ── Lista de estaciones ── */
+    .estaciones-list { display: flex; flex-direction: column; gap: var(--space-4); }
+
+    /* ── Card de estación ── */
+    .estacion-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: border-color var(--transition-base);
+    }
+
+    /* Header de la estación */
+    .estacion-header {
+      display: flex; align-items: center;
+      padding: var(--space-4) var(--space-5);
+      background: var(--color-surface-2);
+      border-bottom: 1px solid var(--color-border);
+      gap: var(--space-3);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Indicador de consumo */
+    .consumo-indicator {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 2px solid rgba(255,255,255,.15);
+      transition: background var(--transition-base);
+    }
+    .consumo-indicator.sin_consumo { background: #3B9B5C; }
+    .consumo-indicator.con_consumo { background: #D94F4F; }
+    .consumo-indicator.captura     { background: #E09B35; }
+    .consumo-indicator.pendiente   { background: var(--color-text-faint); }
+
+    .estacion-header__num {
+      font-family: var(--font-display); font-weight: var(--weight-bold);
+      font-size: var(--text-sm); color: var(--color-text);
+    }
+    .estacion-header__tipo {
+      flex: 1; font-size: var(--text-sm); color: var(--color-text-muted);
+    }
+
+    .estacion-header__badge {
+      font-size: var(--text-xs);
+      padding: 2px var(--space-3);
+      border-radius: var(--radius-full);
+      font-weight: var(--weight-medium);
+    }
+    .estacion-header__badge.sin_consumo { background: rgba(59,155,92,.15); color: #3B9B5C; }
+    .estacion-header__badge.con_consumo { background: rgba(217,79,79,.15);  color: #D94F4F; }
+    .estacion-header__badge.captura     { background: rgba(224,155,53,.15); color: #E09B35; }
+    .estacion-header__badge.pendiente   { background: var(--color-surface-3); color: var(--color-text-faint); }
+
+    .estacion-header__chevron {
+      color: var(--color-text-faint);
+      transition: transform var(--transition-fast);
+      flex-shrink: 0;
+    }
+    .estacion-card.open .estacion-header__chevron { transform: rotate(180deg); }
+
+    .estacion-header__del {
+      background: none; border: none; cursor: pointer;
+      color: var(--color-text-faint); padding: var(--space-1);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center;
+      transition: color var(--transition-fast);
+    }
+    .estacion-header__del:hover { color: var(--color-error); }
+
+    /* Body colapsable */
+    .estacion-body {
+      display: none;
+      padding: var(--space-5);
+      display: flex; flex-direction: column; gap: var(--space-5);
+    }
+    .estacion-card:not(.open) .estacion-body { display: none; }
+    .estacion-card.open .estacion-body { display: flex; }
+
+    /* Grid de campos */
+    .estacion-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+
+    /* Botones de consumo */
+    .consumo-btns {
+      display: flex; gap: var(--space-2);
+    }
+    .consumo-btn {
+      flex: 1;
+      padding: var(--space-3) var(--space-2);
+      border-radius: var(--radius-md);
+      border: 1.5px solid var(--color-border);
+      background: var(--color-surface-2);
+      color: var(--color-text-muted);
+      font-size: var(--text-xs);
+      font-family: var(--font-display); font-weight: var(--weight-semi);
+      cursor: pointer; text-align: center;
+      transition: all var(--transition-fast);
+      display: flex; flex-direction: column;
+      align-items: center; gap: 4px;
+    }
+    .consumo-btn:hover { border-color: var(--color-border-gold); }
+    .consumo-btn .dot {
+      width: 10px; height: 10px; border-radius: 50%; margin: 0 auto;
+    }
+    .consumo-btn[data-val="sin_consumo"] .dot { background: #3B9B5C; }
+    .consumo-btn[data-val="con_consumo"] .dot { background: #D94F4F; }
+    .consumo-btn[data-val="captura"]     .dot { background: #E09B35; }
+
+    .consumo-btn.active[data-val="sin_consumo"] { border-color: #3B9B5C; background: rgba(59,155,92,.12); color: #3B9B5C; }
+    .consumo-btn.active[data-val="con_consumo"] { border-color: #D94F4F; background: rgba(217,79,79,.12);  color: #D94F4F; }
+    .consumo-btn.active[data-val="captura"]     { border-color: #E09B35; background: rgba(224,155,53,.12); color: #E09B35; }
+
+    /* Repone toggle */
+    .repone-btns { display: flex; gap: var(--space-2); }
+    .repone-btn {
+      flex: 1; padding: var(--space-3);
+      border-radius: var(--radius-md);
+      border: 1.5px solid var(--color-border);
+      background: var(--color-surface-2);
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
+      font-family: var(--font-display); font-weight: var(--weight-semi);
+      cursor: pointer; text-align: center;
+      transition: all var(--transition-fast);
+    }
+    .repone-btn:hover { border-color: var(--color-border-gold); }
+    .repone-btn.active[data-val="true"]  { border-color: #3B9B5C; background: rgba(59,155,92,.12); color: #3B9B5C; }
+    .repone-btn.active[data-val="false"] { border-color: #D94F4F; background: rgba(217,79,79,.12);  color: #D94F4F; }
+
+    /* Fotos */
+    .fotos-area {
+      display: flex; flex-direction: column; gap: var(--space-3);
+    }
+    .fotos-grid {
+      display: flex; flex-wrap: wrap; gap: var(--space-2);
+    }
+    .foto-thumb {
+      position: relative;
+      width: 72px; height: 72px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      overflow: hidden;
+    }
+    .foto-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .foto-thumb__del {
+      position: absolute; top: 3px; right: 3px;
+      width: 20px; height: 20px;
+      background: rgba(0,0,0,.65); border: none;
+      border-radius: 50%;
+      color: #fff; font-size: 12px;
+      cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      transition: background var(--transition-fast);
+    }
+    .foto-thumb__del:hover { background: var(--color-error); }
+
+    .upload-btn {
+      width: 72px; height: 72px;
+      border-radius: var(--radius-md);
+      border: 2px dashed var(--color-border);
+      background: var(--color-surface-2);
+      color: var(--color-text-faint);
+      cursor: pointer; display: flex;
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 4px; font-size: 10px;
+      transition: border-color var(--transition-fast), color var(--transition-fast);
+    }
+    .upload-btn:hover { border-color: var(--color-gold); color: var(--color-gold); }
+    .upload-input { display: none; }
+
+    /* Auto-save indicator */
+    .save-indicator {
+      font-size: var(--text-xs); color: var(--color-text-faint);
+      display: flex; align-items: center; gap: 4px;
+      opacity: 0; transition: opacity var(--transition-base);
+    }
+    .save-indicator.visible { opacity: 1; }
+    .save-indicator.saving  { color: var(--color-warning); }
+    .save-indicator.saved   { color: var(--color-success); }
+
+    /* ── Panel vacío ── */
+    .empty-state {
+      text-align: center; padding: var(--space-12) var(--space-6);
+      border: 2px dashed var(--color-border);
+      border-radius: var(--radius-xl);
+      color: var(--color-text-faint);
+    }
+    .empty-state__icon { font-size: 2.5rem; margin-bottom: var(--space-3); }
+    .empty-state__text { font-size: var(--text-sm); }
+
+    /* ── Footer actions ── */
+    .visita-footer {
+      padding: var(--space-6);
+      border-top: 1px solid var(--color-border);
+      display: flex; justify-content: flex-end; gap: var(--space-3);
+    }
+
+    @media (max-width: 640px) {
+      .estacion-grid { grid-template-columns: 1fr; }
+      .visita-content { padding: var(--space-4); }
+      .dash-topbar { padding: var(--space-4); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="visita-page">
+
+  <!-- Topbar -->
+  <header class="dash-topbar">
+    <div class="dash-topbar__brand">
+      <div class="dash-topbar__logo">FD</div>
+      <div>
+        <div class="dash-topbar__name">Fumi Dorado S.A.S</div>
+        <div class="dash-topbar__sub">Registro de visita</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <a href="/tecnico/dashboard" class="btn-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Volver
+      </a>
+    </div>
+  </header>
+
+  <!-- Contenido -->
+  <main class="visita-content">
+
+    <!-- Info de la visita -->
+    <div class="visita-info">
+      <div class="visita-info__left">
+        <div class="visita-info__title">
+          <%= visita.cliente_codigo %> — <%= visita.cliente_nombre %>
+        </div>
+        <div class="visita-info__meta">
+          Sede <span><%= visita.sede_codigo %> · <%= visita.sede_nombre %></span>
+          &nbsp;·&nbsp;
+          <%= new Date().toLocaleDateString('es-CO', { day:'2-digit', month:'long', year:'numeric' }) %>
+        </div>
+      </div>
+      <div class="leyenda">
+        <div class="leyenda__item"><div class="leyenda__dot" style="background:#3B9B5C;"></div>Sin consumo</div>
+        <div class="leyenda__item"><div class="leyenda__dot" style="background:#D94F4F;"></div>Con consumo</div>
+        <div class="leyenda__item"><div class="leyenda__dot" style="background:#E09B35;"></div>Captura</div>
+      </div>
+    </div>
+
+    <!-- Agregar estación -->
+    <div class="add-station-bar">
+      <span class="add-station-bar__label">Agregar estación:</span>
+      <select class="form-control" id="tipo-select" style="max-width:220px;">
+        <% tipos.forEach(t => { %>
+          <option value="<%= t.value %>"><%= t.label %></option>
+        <% }) %>
+      </select>
+      <button class="btn btn--primary btn--sm" id="btn-agregar" type="button">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Agregar
+      </button>
+    </div>
+
+    <!-- Lista de estaciones -->
+    <div class="estaciones-list" id="estaciones-list">
+
+      <% if (estaciones.length === 0) { %>
+        <div class="empty-state" id="empty-state">
+          <div class="empty-state__icon">📋</div>
+          <p class="empty-state__text">No hay estaciones registradas.<br>Agrega la primera usando el botón de arriba.</p>
+        </div>
+      <% } %>
+
+      <% estaciones.forEach(est => { %>
+        <%- include('../partials/estacion-card', {
+          est, consumos, novedades, visitaId: visita.id
+        }) %>
+      <% }) %>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="visita-footer">
+    <a href="/tecnico/dashboard" class="btn btn--secondary">Guardar y salir</a>
+    <button class="btn btn--primary" id="btn-finalizar" type="button">
+      Finalizar visita
+    </button>
+  </footer>
+
+</div>
+
+<!-- Template de card (clonado por JS al agregar) -->
+<template id="tpl-estacion">
+  <%- include('../partials/estacion-card-template', { consumos, novedades }) %>
+</template>
+
+<script>
+const VISITA_ID = '<%= visita.id %>';
+
+// ── Agregar estación ─────────────────────────────────────────────────────────
+document.getElementById('btn-agregar').addEventListener('click', async function () {
+  const tipo    = document.getElementById('tipo-select').value;
+  const res     = await fetch(`/tecnico/visita/${VISITA_ID}/estacion`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ tipo }),
+  });
+  const data = await res.json();
+  if (!data.success) return alert('Error agregando estación.');
+
+  // Ocultar empty state
+  const empty = document.getElementById('empty-state');
+  if (empty) empty.style.display = 'none';
+
+  // Clonar template y agregar al DOM
+  const tpl  = document.getElementById('tpl-estacion');
+  const clone = tpl.content.cloneNode(true);
+  const card  = clone.querySelector('.estacion-card');
+
+  card.dataset.id     = data.estacion.id;
+  card.dataset.consumo = 'pendiente';
+
+  // Número de estación
+  card.querySelector('.estacion-header__num').textContent =
+    'E' + data.estacion.numero;
+
+  // Tipo label
+  const tipoLabels = { quimica: 'Química', mecanica: 'Mecánica', ecologica: 'Ecológica' };
+  card.querySelector('.estacion-header__tipo').textContent =
+    tipoLabels[tipo] || tipo;
+
+  document.getElementById('estaciones-list').appendChild(clone);
+  initCard(card);
+  card.classList.add('open');
+});
+
+// ── Inicializar comportamiento de una card ────────────────────────────────────
+function initCard(card) {
+  const estId   = card.dataset.id;
+  const header  = card.querySelector('.estacion-header');
+  const saveInd = card.querySelector('.save-indicator');
+
+  // Toggle colapsar/expandir
+  header.addEventListener('click', function (e) {
+    if (e.target.closest('.estacion-header__del')) return;
+    card.classList.toggle('open');
+  });
+
+  // Eliminar estación
+  card.querySelector('.estacion-header__del').addEventListener('click', async function () {
+    if (!confirm('¿Eliminar esta estación?')) return;
+    const res = await fetch(`/tecnico/estacion/${estId}`, { method: 'DELETE' });
+    if ((await res.json()).success) card.remove();
+  });
+
+  // Auto-save al cambiar cualquier campo
+  function autoSave() {
+    clearTimeout(card._saveTimer);
+    saveInd.className = 'save-indicator saving visible';
+    saveInd.textContent = 'Guardando...';
+
+    card._saveTimer = setTimeout(async () => {
+      const consumo      = card.dataset.consumo || 'pendiente';
+      const repone       = card.dataset.repone;
+      const novedad      = card.querySelector('.novedad-select')?.value || null;
+      const observaciones = card.querySelector('.obs-textarea')?.value || null;
+
+      await fetch(`/tecnico/estacion/${estId}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ consumo, repone, novedad, observaciones }),
+      });
+
+      saveInd.className   = 'save-indicator saved visible';
+      saveInd.textContent = '✓ Guardado';
+      setTimeout(() => saveInd.classList.remove('visible'), 2000);
+
+      // Actualizar indicador y badge en header
+      updateHeaderBadge(card, consumo);
+    }, 800);
+  }
+
+  // Botones de consumo
+  card.querySelectorAll('.consumo-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      card.querySelectorAll('.consumo-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      card.dataset.consumo = this.dataset.val;
+      autoSave();
+    });
+  });
+
+  // Botones de repone
+  card.querySelectorAll('.repone-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      card.querySelectorAll('.repone-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      card.dataset.repone = this.dataset.val;
+      autoSave();
+    });
+  });
+
+  // Novedad y observaciones
+  card.querySelector('.novedad-select')?.addEventListener('change', autoSave);
+  card.querySelector('.obs-textarea')?.addEventListener('input',   autoSave);
+
+  // Subir foto
+  const uploadInput = card.querySelector('.upload-input');
+  const uploadBtn   = card.querySelector('.upload-btn');
+  uploadBtn?.addEventListener('click', () => uploadInput.click());
+
+  uploadInput?.addEventListener('change', async function () {
+    const file = this.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('foto', file);
+
+    const res  = await fetch(`/tecnico/estacion/${estId}/foto`, { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!data.success) return alert('Error subiendo foto.');
+
+    // Agregar thumb al grid
+    const grid  = card.querySelector('.fotos-grid');
+    const thumb = document.createElement('div');
+    thumb.className    = 'foto-thumb';
+    thumb.dataset.fotoId = data.fotoId || '';
+    thumb.innerHTML = `
+      <img src="${data.url}" alt="Foto estación"/>
+      <button class="foto-thumb__del" title="Eliminar foto">✕</button>`;
+    thumb.querySelector('.foto-thumb__del').addEventListener('click', () => deleteFoto(thumb, data.fotoId));
+    grid.insertBefore(thumb, uploadBtn);
+    this.value = '';
+  });
+}
+
+async function deleteFoto(thumb, fotoId) {
+  if (!confirm('¿Eliminar esta foto?')) return;
+  const res = await fetch(`/tecnico/foto/${fotoId}`, { method: 'DELETE' });
+  if ((await res.json()).success) thumb.remove();
+}
+
+function updateHeaderBadge(card, consumo) {
+  const badge     = card.querySelector('.estacion-header__badge');
+  const indicator = card.querySelector('.consumo-indicator');
+  const labels    = { sin_consumo: 'Sin consumo', con_consumo: 'Con consumo', captura: 'Captura', pendiente: 'Pendiente' };
+  badge.textContent = labels[consumo] || 'Pendiente';
+  badge.className   = `estacion-header__badge ${consumo}`;
+  indicator.className = `consumo-indicator ${consumo}`;
+}
+
+// Inicializar cards existentes (cargadas desde servidor)
+document.querySelectorAll('.estacion-card').forEach(initCard);
+
+// ── Finalizar visita ─────────────────────────────────────────────────────────
+document.getElementById('btn-finalizar').addEventListener('click', async function () {
+  if (!confirm('¿Finalizar la visita? Ya no podrás editar las estaciones.')) return;
+  const res  = await fetch(`/tecnico/visita/${VISITA_ID}/finalizar`, { method: 'POST' });
+  const data = await res.json();
+  if (data.success) window.location.href = data.redirect;
+  else alert('Error finalizando visita.');
+});
+</script>
+
+</body>
+</html>

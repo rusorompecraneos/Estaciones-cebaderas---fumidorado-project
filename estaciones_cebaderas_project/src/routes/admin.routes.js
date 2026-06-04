@@ -1,20 +1,34 @@
 // src/routes/admin.routes.js
 
 import { Router } from 'express';
-import { showDashboard } from '../controllers/admin.controller.js';
+import { showDashboard }    from '../controllers/admin.controller.js';
+import {
+  showUsuarios,
+  crearAdmin,   editarAdmin,   eliminarAdmin,
+  crearTecnico, editarTecnico, eliminarTecnico,
+} from '../controllers/usuarios.controller.js';
 import { isAuthenticated, requireRole } from '../middlewares/authmiddleware.js';
 
 const router = Router();
-
-// Todos los endpoints de admin requieren sesión activa y rol 'admin'
 router.use(isAuthenticated, requireRole('admin'));
 
 // Dashboard
 router.get('/dashboard', showDashboard);
 
+// ── Gestión de usuarios ───────────────────────────────────────────────────────
+router.get('/usuarios', showUsuarios);
 
-// Placeholders — se implementan en próximas iteraciones
-router.get('/usuarios',  (req, res) => res.redirect('/admin/dashboard'));
+// Admins (AJAX)
+router.post('/usuarios/admins',          crearAdmin);
+router.put('/usuarios/admins/:id',       editarAdmin);
+router.delete('/usuarios/admins/:id',    eliminarAdmin);
+
+// Técnicos (AJAX)
+router.post('/usuarios/tecnicos',        crearTecnico);
+router.put('/usuarios/tecnicos/:id',     editarTecnico);
+router.delete('/usuarios/tecnicos/:id',  eliminarTecnico);
+
+// Placeholder diagramas (próxima entrega)
 router.get('/diagramas', (req, res) => res.redirect('/admin/dashboard'));
 
 export default router;

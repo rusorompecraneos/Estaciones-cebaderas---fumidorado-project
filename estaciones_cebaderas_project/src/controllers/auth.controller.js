@@ -139,7 +139,7 @@ export function handleLogout(req, res) {
   req.session.destroy((err) => {
     if (err) console.error('[auth.controller] logout error:', err);
     res.clearCookie('connect.sid');
-    return res.redirect('/auth/role');
+    return res.redirect('/auth/role-select');
   });
 }
 

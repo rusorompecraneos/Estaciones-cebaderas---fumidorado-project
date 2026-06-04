@@ -11,6 +11,7 @@ import pool           from './config/db.config.js';
 import authRoutes     from './routes/auth.routes.js';
 import passwordRoutes from './routes/password.routes.js';
 import adminRoutes    from './routes/admin.routes.js';
+import tecnicoRoutes  from './routes/tecnico.routes.js';
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -63,6 +64,9 @@ app.use('/auth', authRoutes);
 app.use('/admin', adminRoutes);
 
 app.use('/password', passwordRoutes);
+
+app.use('/tecnico', tecnicoRoutes);
+
 
 // Raíz → selector de rol
 app.get('/', (req, res) => res.redirect('/auth/role-select'));

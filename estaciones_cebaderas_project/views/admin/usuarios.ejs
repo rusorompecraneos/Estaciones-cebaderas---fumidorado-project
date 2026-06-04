@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/styles.css"/>
+  <style>
+    .page { min-height:100vh; background:var(--color-bg); display:flex; flex-direction:column; }
+
+    /* ── Topbar ── */
+    .topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:var(--space-4) var(--space-8);
+      background:var(--color-surface);
+      border-bottom:1px solid var(--color-border);
+      position:sticky; top:0; z-index:50;
+    }
+    .topbar__left { display:flex; align-items:center; gap:var(--space-4); }
+    .topbar__back {
+      display:flex; align-items:center; gap:var(--space-2);
+      color:var(--color-text-muted); font-size:var(--text-sm);
+      text-decoration:none; transition:color var(--transition-fast);
+    }
+    .topbar__back:hover { color:var(--color-gold); }
+    .topbar__title { font-family:var(--font-display); font-size:var(--text-lg); font-weight:var(--weight-semi); }
+    .topbar__sub   { font-size:var(--text-xs); color:var(--color-text-muted); }
+
+    /* ── Contenido ── */
+    .page-content {
+      flex:1; max-width:1100px; width:100%;
+      margin:0 auto; padding:var(--space-8) var(--space-6);
+      display:flex; flex-direction:column; gap:var(--space-8);
+    }
+
+    /* ── Sección tabla ── */
+    .section-header {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:var(--space-4);
+    }
+    .section-title {
+      font-family:var(--font-display); font-size:var(--text-lg);
+      font-weight:var(--weight-semi); color:var(--color-text);
+    }
+    .section-count {
+      font-size:var(--text-xs); color:var(--color-text-muted);
+      margin-top:2px;
+    }
+
+    /* ── Tabla ── */
+    .table-wrapper {
+      border:1px solid var(--color-border-gold);
+      border-radius:var(--radius-lg);
+      overflow:hidden;
+    }
+    table { width:100%; border-collapse:collapse; font-size:var(--text-sm); }
+    thead { background:var(--color-surface-2); }
+    thead th {
+      padding:var(--space-3) var(--space-5);
+      text-align:left;
+      font-family:var(--font-display); font-weight:var(--weight-semi);
+      font-size:var(--text-xs); color:var(--color-text-muted);
+      text-transform:uppercase; letter-spacing:.06em;
+      border-bottom:1px solid var(--color-border);
+    }
+    tbody tr {
+      border-bottom:1px solid var(--color-border);
+      transition:background var(--transition-fast);
+    }
+    tbody tr:last-child { border-bottom:none; }
+    tbody tr:hover { background:var(--color-gold-muted); }
+    tbody td { padding:var(--space-4) var(--space-5); color:var(--color-text); vertical-align:middle; }
+    .td-muted { color:var(--color-text-muted); }
+
+    /* Acciones en tabla */
+    .tbl-actions { display:flex; align-items:center; gap:var(--space-2); }
+    .btn-icon {
+      width:32px; height:32px; border-radius:var(--radius-sm);
+      border:1px solid var(--color-border); background:var(--color-surface-2);
+      color:var(--color-text-muted); display:inline-flex;
+      align-items:center; justify-content:center;
+      cursor:pointer; transition:all var(--transition-fast);
+    }
+    .btn-icon:hover         { border-color:var(--color-gold);  color:var(--color-gold);  }
+    .btn-icon--danger:hover { border-color:var(--color-error); color:var(--color-error); }
+
+    /* ── Modals ── */
+    .modal-overlay {
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.75);
+      backdrop-filter:blur(4px);
+      display:flex; align-items:center; justify-content:center;
+      z-index:9999; padding:var(--space-6);
+      opacity:0; pointer-events:none;
+      transition:opacity var(--transition-base);
+    }
+    .modal-overlay.active { opacity:1; pointer-events:all; }
+
+    .modal {
+      width:100%; max-width:500px;
+      max-height:88vh; overflow-y:auto;
+      background:var(--color-surface);
+      border:3px solid var(--color-border-gold);
+      border-radius:var(--radius-xl);
+      padding:var(--space-8) var(--space-7);
+      transform:translateY(16px);
+      transition:transform var(--transition-base);
+      box-shadow:var(--shadow-lg), var(--shadow-gold);
+    }
+    .modal-overlay.active .modal { transform:translateY(0); }
+
+    .modal__header {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:var(--space-6);
+      padding-bottom:var(--space-4);
+      border-bottom:1px solid var(--color-border);
+    }
+    .modal__title { font-family:var(--font-display); font-size:var(--text-lg); font-weight:var(--weight-semi); }
+    .modal__close {
+      width:32px; height:32px; border-radius:var(--radius-md);
+      background:var(--color-surface-2); border:1px solid var(--color-border);
+      color:var(--color-text-muted); cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      transition:all var(--transition-fast);
+    }
+    .modal__close:hover { border-color:var(--color-error); color:var(--color-error); }
+
+    .modal-form { display:flex; flex-direction:column; gap:var(--space-4); }
+    .form-row   { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); }
+
+    /* Hint en campos de edición */
+    .form-hint { font-size:var(--text-xs); color:var(--color-text-faint); margin-top:2px; }
+
+    /* Errores inline */
+    .field-error { font-size:var(--text-xs); color:var(--color-error); margin-top:2px; min-height:16px; }
+    .form-control.is-error { border-color:var(--color-error); box-shadow:0 0 0 3px rgba(224,82,82,.15); }
+
+    /* ── Modal de éxito ── */
+    .modal--success .modal {
+      max-width:400px; text-align:center;
+      padding:var(--space-12) var(--space-8);
+      border-color:var(--color-border-gold);
+    }
+    .success-icon {
+      width:64px; height:64px;
+      background:var(--color-gold-muted);
+      border:2px solid var(--color-border-gold);
+      border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      color:var(--color-gold); font-size:28px;
+      margin:0 auto var(--space-5);
+    }
+    .success-title {
+      font-family:var(--font-display); font-size:var(--text-xl);
+      font-weight:var(--weight-bold); color:var(--color-text);
+      margin-bottom:var(--space-6);
+    }
+
+    /* ── Modal de confirmación eliminar ── */
+    .modal--danger .modal { max-width:400px; text-align:center; }
+    .danger-icon {
+      width:56px; height:56px;
+      background:rgba(224,82,82,.1);
+      border:2px solid rgba(224,82,82,.3);
+      border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      color:var(--color-error); margin:0 auto var(--space-4);
+    }
+    .danger-title { font-family:var(--font-display); font-size:var(--text-lg); font-weight:var(--weight-semi); margin-bottom:var(--space-2); }
+    .danger-desc  { font-size:var(--text-sm); color:var(--color-text-muted); margin-bottom:var(--space-6); }
+    .danger-actions { display:flex; gap:var(--space-3); justify-content:center; }
+
+    /* ── Error global en modal ── */
+    .modal-alert {
+      padding:var(--space-3) var(--space-4);
+      border-radius:var(--radius-md);
+      font-size:var(--text-sm);
+      margin-bottom:var(--space-2);
+      display:none;
+    }
+    .modal-alert.error   { background:rgba(224,82,82,.1); border:1px solid rgba(224,82,82,.3); color:var(--color-error); }
+    .modal-alert.visible { display:block; }
+
+    /* ── Spinner botón ── */
+    .btn-spinner {
+      width:14px; height:14px;
+      border:2px solid rgba(17,17,16,.25);
+      border-top-color:#111;
+      border-radius:50%;
+      animation:spin .7s linear infinite;
+      flex-shrink:0; display:none;
+    }
+    .btn-spinner.visible { display:inline-block; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* Empty state */
+    .empty-row td {
+      text-align:center; padding:var(--space-10);
+      color:var(--color-text-faint); font-size:var(--text-sm);
+    }
+
+    @media(max-width:768px) {
+      .page-content { padding:var(--space-4); }
+      .topbar { padding:var(--space-4); }
+      .form-row { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <a href="/admin/dashboard" class="topbar__back">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </a>
+      <div>
+        <div class="topbar__title">Gestión de Usuarios</div>
+        <div class="topbar__sub">Administra usuarios del sistema</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <!-- ══════════════════════════════════════════
+         TABLA ADMINISTRADORES
+    ══════════════════════════════════════════ -->
+    <section>
+      <div class="section-header">
+        <div>
+          <div class="section-title">Administradores</div>
+          <div class="section-count"><%= admins.length %> registrado<%= admins.length !== 1 ? 's' : '' %></div>
+        </div>
+        <button class="btn btn--primary btn--sm" onclick="openModal('modal-admin-crear')">
+          + Registrar Admin
+        </button>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Usuario</th>
+              <th>Correo</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-admins">
+            <% if (admins.length === 0) { %>
+              <tr class="empty-row"><td colspan="5">No hay administradores registrados.</td></tr>
+            <% } %>
+            <% admins.forEach(a => { %>
+              <tr id="row-admin-<%= a.id %>">
+                <td><strong><%= a.nombre %></strong></td>
+                <td class="td-muted"><%= a.username %></td>
+                <td class="td-muted"><%= a.email || '—' %></td>
+                <td>
+                  <span class="badge <%= a.activo ? 'badge--success' : 'badge--error' %>">
+                    <%= a.activo ? 'Activo' : 'Inactivo' %>
+                  </span>
+                </td>
+                <td>
+                  <div class="tbl-actions">
+                    <button class="btn-icon" title="Editar"
+                      onclick="openEditAdmin(<%= JSON.stringify({id:a.id, nombre:a.nombre, username:a.username, email:a.email||''}) %>)">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <% if (a.id !== currentUser.id) { %>
+                      <button class="btn-icon btn-icon--danger" title="Eliminar"
+                        onclick="openDeleteAdmin(<%= a.id %>, '<%= a.nombre.replace(/'/g, "\\'") %>')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6l-1 14H6L5 6"/>
+                          <path d="M10 11v6M14 11v6"/>
+                        </svg>
+                      </button>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         TABLA TÉCNICOS
+    ══════════════════════════════════════════ -->
+    <section>
+      <div class="section-header">
+        <div>
+          <div class="section-title">Técnicos</div>
+          <div class="section-count"><%= tecnicos.length %> registrado<%= tecnicos.length !== 1 ? 's' : '' %></div>
+        </div>
+        <button class="btn btn--primary btn--sm" onclick="openModal('modal-tec-crear')">
+          + Registrar Técnico
+        </button>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Iniciales</th>
+              <th>Correo</th>
+              <th>Teléfono</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-tecnicos">
+            <% if (tecnicos.length === 0) { %>
+              <tr class="empty-row"><td colspan="6">No hay técnicos registrados.</td></tr>
+            <% } %>
+            <% tecnicos.forEach(t => { %>
+              <tr id="row-tec-<%= t.id %>">
+                <td><strong><%= t.nombre %></strong></td>
+                <td>
+                  <div style="width:32px;height:32px;border-radius:50%;background:var(--color-gold);color:#111;
+                    font-family:var(--font-display);font-weight:700;font-size:var(--text-xs);
+                    display:flex;align-items:center;justify-content:center;">
+                    <%= t.iniciales %>
+                  </div>
+                </td>
+                <td class="td-muted"><%= t.email || '—' %></td>
+                <td class="td-muted"><%= t.telefono || '—' %></td>
+                <td>
+                  <span class="badge <%= t.activo ? 'badge--success' : 'badge--error' %>">
+                    <%= t.activo ? 'Activo' : 'Inactivo' %>
+                  </span>
+                </td>
+                <td>
+                  <div class="tbl-actions">
+                    <button class="btn-icon" title="Editar"
+                      onclick="openEditTecnico(<%= JSON.stringify({id:t.id, nombre:t.nombre, iniciales:t.iniciales, email:t.email||'', telefono:t.telefono||''}) %>)">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="btn-icon btn-icon--danger" title="Eliminar"
+                      onclick="openDeleteTecnico(<%= t.id %>, '<%= t.nombre.replace(/'/g, "\\'") %>')">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-1 14H6L5 6"/>
+                        <path d="M10 11v6M14 11v6"/>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL — Crear Admin
+══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-admin-crear">
+  <div class="modal">
+    <div class="modal__header">
+      <h2 class="modal__title">Registrar Administrador</h2>
+      <button class="modal__close" onclick="closeModal('modal-admin-crear')">✕</button>
+    </div>
+    <div class="modal-alert error" id="alert-admin-crear"></div>
+    <div class="modal-form" id="form-admin-crear">
+      <div class="form-group">
+        <label class="form-label">Nombre completo *</label>
+        <input class="form-control" type="text" id="ac-nombre" placeholder="Ej: Juan Gómez"/>
+        <span class="field-error" id="ac-err-nombre"></span>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Usuario *</label>
+          <input class="form-control" type="text" id="ac-username" placeholder="jgomez" autocapitalize="none"/>
+          <span class="field-error" id="ac-err-username"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Correo *</label>
+          <input class="form-control" type="email" id="ac-email" placeholder="j@fumiDorado.com"/>
+          <span class="field-error" id="ac-err-email"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña *</label>
+        <input class="form-control" type="password" id="ac-password" placeholder="Mínimo 8 caracteres"/>
+        <span class="field-error" id="ac-err-password"></span>
+      </div>
+      <button class="btn btn--primary btn--lg" onclick="submitCrearAdmin()">
+        <span id="ac-btn-text">Registrar Administrador</span>
+        <span class="btn-spinner" id="ac-spinner"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL — Editar Admin
+══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-admin-editar">
+  <div class="modal">
+    <div class="modal__header">
+      <h2 class="modal__title">Editar Administrador</h2>
+      <button class="modal__close" onclick="closeModal('modal-admin-editar')">✕</button>
+    </div>
+    <div class="modal-alert error" id="alert-admin-editar"></div>
+    <input type="hidden" id="ae-id"/>
+    <div class="modal-form">
+      <div class="form-group">
+        <label class="form-label">Nombre completo *</label>
+        <input class="form-control" type="text" id="ae-nombre"/>
+        <span class="field-error" id="ae-err-nombre"></span>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Usuario *</label>
+          <input class="form-control" type="text" id="ae-username" autocapitalize="none"/>
+          <span class="field-error" id="ae-err-username"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Correo *</label>
+          <input class="form-control" type="email" id="ae-email"/>
+          <span class="field-error" id="ae-err-email"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nueva contraseña</label>
+        <input class="form-control" type="password" id="ae-password" placeholder="Dejar vacío para no cambiar"/>
+        <span class="form-hint">Dejar vacío para mantener la contraseña actual.</span>
+        <span class="field-error" id="ae-err-password"></span>
+      </div>
+      <button class="btn btn--primary btn--lg" onclick="submitEditarAdmin()">
+        <span id="ae-btn-text">Guardar cambios</span>
+        <span class="btn-spinner" id="ae-spinner"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL — Crear Técnico
+══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-tec-crear">
+  <div class="modal">
+    <div class="modal__header">
+      <h2 class="modal__title">Registrar Técnico</h2>
+      <button class="modal__close" onclick="closeModal('modal-tec-crear')">✕</button>
+    </div>
+    <div class="modal-alert error" id="alert-tec-crear"></div>
+    <div class="modal-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre completo *</label>
+          <input class="form-control" type="text" id="tc-nombre" placeholder="Ej: Carlos Pérez"/>
+          <span class="field-error" id="tc-err-nombre"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Iniciales *</label>
+          <input class="form-control" type="text" id="tc-iniciales" placeholder="CP" maxlength="3" style="text-transform:uppercase"/>
+          <span class="field-error" id="tc-err-iniciales"></span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Correo</label>
+          <input class="form-control" type="email" id="tc-email" placeholder="cperez@fumiDorado.com"/>
+          <span class="field-error" id="tc-err-email"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input class="form-control" type="tel" id="tc-telefono" placeholder="300 000 0000"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">PIN de acceso (4 dígitos) *</label>
+        <input class="form-control" type="password" id="tc-pin" placeholder="••••" maxlength="4" inputmode="numeric"/>
+        <span class="field-error" id="tc-err-pin"></span>
+      </div>
+      <button class="btn btn--primary btn--lg" onclick="submitCrearTecnico()">
+        <span id="tc-btn-text">Registrar Técnico</span>
+        <span class="btn-spinner" id="tc-spinner"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL — Editar Técnico
+══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-tec-editar">
+  <div class="modal">
+    <div class="modal__header">
+      <h2 class="modal__title">Editar Técnico</h2>
+      <button class="modal__close" onclick="closeModal('modal-tec-editar')">✕</button>
+    </div>
+    <div class="modal-alert error" id="alert-tec-editar"></div>
+    <input type="hidden" id="te-id"/>
+    <div class="modal-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre completo *</label>
+          <input class="form-control" type="text" id="te-nombre"/>
+          <span class="field-error" id="te-err-nombre"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Iniciales *</label>
+          <input class="form-control" type="text" id="te-iniciales" maxlength="3" style="text-transform:uppercase"/>
+          <span class="field-error" id="te-err-iniciales"></span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Correo</label>
+          <input class="form-control" type="email" id="te-email"/>
+          <span class="field-error" id="te-err-email"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input class="form-control" type="tel" id="te-telefono"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nuevo PIN (4 dígitos)</label>
+        <input class="form-control" type="password" id="te-pin" placeholder="Dejar vacío para no cambiar" maxlength="4" inputmode="numeric"/>
+        <span class="form-hint">Dejar vacío para mantener el PIN actual.</span>
+        <span class="field-error" id="te-err-pin"></span>
+      </div>
+      <button class="btn btn--primary btn--lg" onclick="submitEditarTecnico()">
+        <span id="te-btn-text">Guardar cambios</span>
+        <span class="btn-spinner" id="te-spinner"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL — Confirmar eliminación
+══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay modal--danger" id="modal-delete">
+  <div class="modal">
+    <div class="danger-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14H6L5 6"/>
+        <path d="M10 11v6M14 11v6"/>
+        <path d="M9 6V4h6v2"/>
+      </svg>
+    </div>
+    <h2 class="danger-title">¿Eliminar usuario?</h2>
+    <p class="danger-desc" id="delete-desc">Esta acción no se puede deshacer.</p>
+    <div class="danger-actions">
+      <button class="btn btn--secondary" onclick="closeModal('modal-delete')">Cancelar</button>
+      <button class="btn btn--danger" id="btn-confirm-delete" onclick="confirmDelete()">
+        <span id="del-btn-text">Eliminar</span>
+        <span class="btn-spinner" id="del-spinner"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL — Éxito
+══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay modal--success" id="modal-exito">
+  <div class="modal">
+    <div class="success-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <h2 class="success-title" id="exito-msg">¡Operación exitosa!</h2>
+    <button class="btn btn--primary btn--lg" onclick="closeModal('modal-exito'); location.reload()">
+      Cerrar
+    </button>
+  </div>
+</div>
+
+<script>
+// ── Helpers de modal ──────────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('active');
+  });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape')
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+});
+
+// ── Helpers de formulario ─────────────────────────────────────────────────────
+function clearErrors(prefix) {
+  document.querySelectorAll(`[id^="${prefix}-err-"]`).forEach(el => el.textContent = '');
+  document.querySelectorAll(`[id^="${prefix}"] .form-control`).forEach(el => el.classList.remove('is-error'));
+}
+
+function showErrors(prefix, errors) {
+  Object.entries(errors).forEach(([field, msg]) => {
+    const errEl   = document.getElementById(`${prefix}-err-${field}`);
+    const inputEl = document.getElementById(`${prefix}-${field}`);
+    if (errEl)   errEl.textContent = msg;
+    if (inputEl) inputEl.classList.add('is-error');
+  });
+}
+
+function showAlert(alertId, msg) {
+  const el = document.getElementById(alertId);
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+function hideAlert(alertId) {
+  const el = document.getElementById(alertId);
+  el.textContent = '';
+  el.classList.remove('visible');
+}
+
+function setLoading(btnTextId, spinnerId, loading) {
+  document.getElementById(spinnerId).classList.toggle('visible', loading);
+  document.getElementById(btnTextId).style.opacity = loading ? '0.5' : '1';
+}
+
+async function apiFetch(url, method, body) {
+  const res = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
+function showExito(msg) {
+  document.getElementById('exito-msg').textContent = msg;
+  openModal('modal-exito');
+}
+
+// ══════════════════════════════════════════════════════════
+// ADMINS
+// ══════════════════════════════════════════════════════════
+
+// ── Crear Admin ───────────────────────────────────────────
+async function submitCrearAdmin() {
+  clearErrors('ac');
+  hideAlert('alert-admin-crear');
+  setLoading('ac-btn-text', 'ac-spinner', true);
+
+  const body = {
+    nombre:   document.getElementById('ac-nombre').value.trim(),
+    username: document.getElementById('ac-username').value.trim(),
+    email:    document.getElementById('ac-email').value.trim(),
+    password: document.getElementById('ac-password').value,
+  };
+
+  const data = await apiFetch('/admin/usuarios/admins', 'POST', body);
+  setLoading('ac-btn-text', 'ac-spinner', false);
+
+  if (!data.success) {
+    if (data.errors) showErrors('ac', data.errors);
+    else showAlert('alert-admin-crear', data.message || 'Error al registrar.');
+    return;
+  }
+
+  closeModal('modal-admin-crear');
+  showExito('¡Administrador registrado correctamente!');
+}
+
+// ── Editar Admin ──────────────────────────────────────────
+function openEditAdmin(admin) {
+  document.getElementById('ae-id').value       = admin.id;
+  document.getElementById('ae-nombre').value   = admin.nombre;
+  document.getElementById('ae-username').value = admin.username;
+  document.getElementById('ae-email').value    = admin.email;
+  document.getElementById('ae-password').value = '';
+  clearErrors('ae');
+  hideAlert('alert-admin-editar');
+  openModal('modal-admin-editar');
+}
+
+async function submitEditarAdmin() {
+  clearErrors('ae');
+  hideAlert('alert-admin-editar');
+  setLoading('ae-btn-text', 'ae-spinner', true);
+
+  const id   = document.getElementById('ae-id').value;
+  const body = {
+    nombre:   document.getElementById('ae-nombre').value.trim(),
+    username: document.getElementById('ae-username').value.trim(),
+    email:    document.getElementById('ae-email').value.trim(),
+    password: document.getElementById('ae-password').value || undefined,
+  };
+
+  const data = await apiFetch(`/admin/usuarios/admins/${id}`, 'PUT', body);
+  setLoading('ae-btn-text', 'ae-spinner', false);
+
+  if (!data.success) {
+    if (data.errors) showErrors('ae', data.errors);
+    else showAlert('alert-admin-editar', data.message || 'Error al guardar.');
+    return;
+  }
+
+  closeModal('modal-admin-editar');
+  showExito('¡Administrador actualizado correctamente!');
+}
+
+// ── Eliminar Admin ────────────────────────────────────────
+let _deleteTarget = null;
+
+function openDeleteAdmin(id, nombre) {
+  _deleteTarget = { tipo: 'admin', id };
+  document.getElementById('delete-desc').textContent =
+    `¿Seguro que quieres eliminar a "${nombre}"? Esta acción no se puede deshacer.`;
+  openModal('modal-delete');
+}
+
+// ══════════════════════════════════════════════════════════
+// TÉCNICOS
+// ══════════════════════════════════════════════════════════
+
+// ── Crear Técnico ─────────────────────────────────────────
+async function submitCrearTecnico() {
+  clearErrors('tc');
+  hideAlert('alert-tec-crear');
+  setLoading('tc-btn-text', 'tc-spinner', true);
+
+  const body = {
+    nombre:    document.getElementById('tc-nombre').value.trim(),
+    iniciales: document.getElementById('tc-iniciales').value.trim().toUpperCase(),
+    email:     document.getElementById('tc-email').value.trim() || undefined,
+    telefono:  document.getElementById('tc-telefono').value.trim() || undefined,
+    pin:       document.getElementById('tc-pin').value,
+  };
+
+  const data = await apiFetch('/admin/usuarios/tecnicos', 'POST', body);
+  setLoading('tc-btn-text', 'tc-spinner', false);
+
+  if (!data.success) {
+    if (data.errors) showErrors('tc', data.errors);
+    else showAlert('alert-tec-crear', data.message || 'Error al registrar.');
+    return;
+  }
+
+  closeModal('modal-tec-crear');
+  showExito('¡Técnico registrado correctamente!');
+}
+
+// ── Editar Técnico ────────────────────────────────────────
+function openEditTecnico(tec) {
+  document.getElementById('te-id').value        = tec.id;
+  document.getElementById('te-nombre').value    = tec.nombre;
+  document.getElementById('te-iniciales').value = tec.iniciales;
+  document.getElementById('te-email').value     = tec.email;
+  document.getElementById('te-telefono').value  = tec.telefono;
+  document.getElementById('te-pin').value       = '';
+  clearErrors('te');
+  hideAlert('alert-tec-editar');
+  openModal('modal-tec-editar');
+}
+
+async function submitEditarTecnico() {
+  clearErrors('te');
+  hideAlert('alert-tec-editar');
+  setLoading('te-btn-text', 'te-spinner', true);
+
+  const id   = document.getElementById('te-id').value;
+  const body = {
+    nombre:    document.getElementById('te-nombre').value.trim(),
+    iniciales: document.getElementById('te-iniciales').value.trim().toUpperCase(),
+    email:     document.getElementById('te-email').value.trim() || undefined,
+    telefono:  document.getElementById('te-telefono').value.trim() || undefined,
+    pin:       document.getElementById('te-pin').value || undefined,
+  };
+
+  const data = await apiFetch(`/admin/usuarios/tecnicos/${id}`, 'PUT', body);
+  setLoading('te-btn-text', 'te-spinner', false);
+
+  if (!data.success) {
+    if (data.errors) showErrors('te', data.errors);
+    else showAlert('alert-tec-editar', data.message || 'Error al guardar.');
+    return;
+  }
+
+  closeModal('modal-tec-editar');
+  showExito('¡Técnico actualizado correctamente!');
+}
+
+// ── Eliminar Técnico ──────────────────────────────────────
+function openDeleteTecnico(id, nombre) {
+  _deleteTarget = { tipo: 'tecnico', id };
+  document.getElementById('delete-desc').textContent =
+    `¿Seguro que quieres eliminar a "${nombre}"? Esta acción no se puede deshacer.`;
+  openModal('modal-delete');
+}
+
+// ── Confirmar eliminación (admin o técnico) ───────────────
+async function confirmDelete() {
+  if (!_deleteTarget) return;
+  setLoading('del-btn-text', 'del-spinner', true);
+
+  const { tipo, id } = _deleteTarget;
+  const url = tipo === 'admin'
+    ? `/admin/usuarios/admins/${id}`
+    : `/admin/usuarios/tecnicos/${id}`;
+
+  const data = await apiFetch(url, 'DELETE', {});
+  setLoading('del-btn-text', 'del-spinner', false);
+
+  if (!data.success) {
+    alert(data.message || 'Error al eliminar.');
+    closeModal('modal-delete');
+    return;
+  }
+
+  // Eliminar fila de la tabla sin recargar
+  const rowId = tipo === 'admin' ? `row-admin-${id}` : `row-tec-${id}`;
+  document.getElementById(rowId)?.remove();
+
+  closeModal('modal-delete');
+  showExito(`¡Usuario eliminado correctamente!`);
+  _deleteTarget = null;
+}
+</script>
+
+</body>
+</html>

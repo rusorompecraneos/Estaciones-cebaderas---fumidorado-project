@@ -1,0 +1,88 @@
+<%# src/views/partials/estacion-card-template.ejs %>
+<%# Usado dentro del <template> para clonar nuevas estaciones por JS %>
+
+<div class="estacion-card" data-id="" data-consumo="pendiente">
+  <div class="estacion-header">
+    <div class="consumo-indicator pendiente"></div>
+    <span class="estacion-header__num">E?</span>
+    <span class="estacion-header__tipo">—</span>
+    <span class="estacion-header__badge pendiente">Pendiente</span>
+    <button class="estacion-header__del" title="Eliminar estación" type="button">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14H6L5 6"/>
+        <path d="M10 11v6M14 11v6"/>
+      </svg>
+    </button>
+    <svg class="estacion-header__chevron" width="16" height="16" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  </div>
+
+  <div class="estacion-body">
+
+    <!-- Consumo -->
+    <div class="form-group">
+      <label class="form-label">Consumo</label>
+      <div class="consumo-btns">
+        <% consumos.forEach(c => { %>
+          <button class="consumo-btn" data-val="<%= c.value %>" type="button">
+            <span class="dot"></span>
+            <%= c.label %>
+          </button>
+        <% }) %>
+      </div>
+    </div>
+
+    <div class="estacion-grid">
+
+      <!-- Repone -->
+      <div class="form-group">
+        <label class="form-label">¿Repone?</label>
+        <div class="repone-btns">
+          <button class="repone-btn" data-val="true"  type="button">Sí</button>
+          <button class="repone-btn" data-val="false" type="button">No</button>
+        </div>
+      </div>
+
+      <!-- Novedad -->
+      <div class="form-group">
+        <label class="form-label">Novedad</label>
+        <select class="form-control novedad-select">
+          <option value="">— Sin novedad —</option>
+          <% novedades.forEach(n => { %>
+            <option value="<%= n %>"><%= n %></option>
+          <% }) %>
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Observaciones -->
+    <div class="form-group">
+      <label class="form-label">Observaciones</label>
+      <textarea class="form-control obs-textarea" rows="2"
+                placeholder="Detalle adicional sobre la estación..."></textarea>
+    </div>
+
+    <!-- Fotos -->
+    <div class="fotos-area">
+      <label class="form-label">Fotos</label>
+      <div class="fotos-grid">
+        <label class="upload-btn" title="Agregar foto">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          <span style="font-size:10px;">Foto</span>
+          <input class="upload-input" type="file" accept="image/jpeg,image/png,image/webp"/>
+        </label>
+      </div>
+    </div>
+
+    <!-- Indicador de guardado -->
+    <div class="save-indicator"></div>
+
+  </div>
+</div>
