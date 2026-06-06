@@ -275,7 +275,7 @@
                 <td>
                   <div class="tbl-actions">
                     <!-- Configurar puntos -->
-                    <a class="btn-icon btn-icon--info" href="/admin/diagramas/<%= d.id %>/configurar" title="Configurar puntos">
+                    <a class="btn-icon btn-icon--info" href="/admin/diagramas-upc/<%= d.id %>/configurar" title="Configurar puntos">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"/>
                         <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
@@ -405,7 +405,7 @@ btnSubir.addEventListener('click', async function () {
   formData.append('nombre', document.getElementById('up-nombre').value.trim());
 
   try {
-    const res  = await fetch('/admin/diagramas', { method: 'POST', body: formData });
+    const res  = await fetch('/admin/diagramas-upc', { method: 'POST', body: formData });
     const data = await res.json();
 
     if (!data.success) {
@@ -417,7 +417,7 @@ btnSubir.addEventListener('click', async function () {
           : '✅ Diagrama subido correctamente. Ahora configura los puntos del mapa.'
       );
       setTimeout(() => {
-        window.location.href = `/admin/diagramas/${data.diagramaId}/configurar`;
+        window.location.href = `/admin/diagramas-upc/${data.diagramaId}/configurar`;
       }, 1500);
     }
   } catch {
@@ -452,7 +452,7 @@ function closeDelete() {
   document.getElementById('modal-delete').classList.remove('active');
 }
 async function confirmDelete() {
-  const res  = await fetch(`/admin/diagramas/${_deleteId}`, { method: 'DELETE' });
+  const res  = await fetch(`/admin/diagramas-upc/${_deleteId}`, { method: 'DELETE' });
   const data = await res.json();
   if (data.success) {
     document.getElementById(`row-d-${_deleteId}`)?.remove();

@@ -153,7 +153,7 @@
 <!-- Topbar -->
 <header class="topbar">
   <div class="topbar__left">
-    <a href="/admin/diagramas" class="topbar__back">
+    <a href="/admin/diagramas-upc" class="topbar__back">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="15 18 9 12 15 6"/>
       </svg>
@@ -226,7 +226,7 @@
 <script>
 // ── Config ────────────────────────────────────────────────────────────────────
 const DIAGRAMA_ID  = '<%= diagrama.id %>';
-const PDF_URL      = '/admin/diagramas/<%= diagrama.id %>/pdf';
+const PDF_URL      = '/admin/diagramas-upc/<%= diagrama.id %>/pdf';
 const TIPOS_CONFIG = {
   quimica:   { label: 'Química',   color: '#C9962A' },
   mecanica:  { label: 'Mecánica',  color: '#4FA3E0' },
@@ -409,7 +409,7 @@ document.getElementById('btn-guardar').addEventListener('click', async function 
   }));
 
   try {
-    const res  = await fetch(`/admin/diagramas/${DIAGRAMA_ID}/puntos`, {
+    const res  = await fetch(`/admin/diagramas-upc/${DIAGRAMA_ID}/puntos`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ puntos: payload }),
