@@ -30,13 +30,13 @@ export async function showUsuarios(req, res) {
 
 // POST /admin/usuarios/admins  (AJAX)
 export async function crearAdmin(req, res) {
-  const { nombre, username, email, password } = req.body;
+  const { nombre, username, email, password, telefono } = req.body;
 
-  const { valid, errors } = service.validateAdmin({ nombre, username, email, password });
+  const { valid, errors } = service.validateAdmin({ nombre, username, email, password, telefono });
   if (!valid) return res.status(422).json({ success: false, errors });
 
   try {
-    const result = await service.createAdmin({ nombre, username, email, password });
+    const result = await service.createAdmin({ nombre, username, email, password, telefono });
     if (!result.success) {
       return res.status(409).json({ success: false, errors: { [result.field]: result.message } });
     }
@@ -49,15 +49,15 @@ export async function crearAdmin(req, res) {
 
 // PUT /admin/usuarios/admins/:id  (AJAX)
 export async function editarAdmin(req, res) {
-  const { nombre, username, email, password } = req.body;
+  const { nombre, username, email, password, telefono } = req.body;
   const id = req.params.id;
 
-  const { valid, errors } = service.validateAdmin({ nombre, username, email, password }, true);
+  const { valid, errors } = service.validateAdmin({ nombre, username, email, password, telefono }, true);
   if (!valid) return res.status(422).json({ success: false, errors });
 
   try {
     const result = await service.updateAdmin(
-      { id, nombre, username, email, password },
+      { id, nombre, username, email, password, telefono },
       req.session.user.id
     );
     if (!result.success) {

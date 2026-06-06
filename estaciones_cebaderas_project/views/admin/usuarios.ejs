@@ -396,6 +396,16 @@
           <input class="form-control" type="email" id="ac-email" placeholder="j@fumiDorado.com"/>
           <span class="field-error" id="ac-err-email"></span>
         </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono *</label>
+          <input
+            class="form-control"
+            type="text"
+            id="ac-telefono"
+            placeholder="3001234567"
+          />
+          <span class="field-error" id="ac-err-telefono"></span>
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Contraseña *</label>
@@ -437,6 +447,11 @@
           <label class="form-label">Correo *</label>
           <input class="form-control" type="email" id="ae-email"/>
           <span class="field-error" id="ae-err-email"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono *</label>
+          <input class="form-control" type="text" id="ae-telefono" placeholder="3001234567"/>
+          <span class="field-error" id="ae-err-telefono"></span>
         </div>
       </div>
       <div class="form-group">
@@ -485,6 +500,7 @@
         <div class="form-group">
           <label class="form-label">Teléfono</label>
           <input class="form-control" type="tel" id="tc-telefono" placeholder="300 000 0000"/>
+          <span class="field-error" id="tc-err-telefono"></span>
         </div>
       </div>
       <div class="form-group">
@@ -533,6 +549,7 @@
         <div class="form-group">
           <label class="form-label">Teléfono</label>
           <input class="form-control" type="tel" id="te-telefono"/>
+          <span class="field-error" id="te-err-telefono"></span>  
         </div>
       </div>
       <div class="form-group">
@@ -667,6 +684,8 @@ async function submitCrearAdmin() {
     username: document.getElementById('ac-username').value.trim(),
     email:    document.getElementById('ac-email').value.trim(),
     password: document.getElementById('ac-password').value,
+    telefono: document.getElementById('ac-telefono').value.trim(),
+
   };
 
   const data = await apiFetch('/admin/usuarios/admins', 'POST', body);
@@ -689,6 +708,7 @@ function openEditAdmin(admin) {
   document.getElementById('ae-username').value = admin.username;
   document.getElementById('ae-email').value    = admin.email;
   document.getElementById('ae-password').value = '';
+  document.getElementById('ae-telefono').value = admin.telefono || '';
   clearErrors('ae');
   hideAlert('alert-admin-editar');
   openModal('modal-admin-editar');
@@ -704,6 +724,7 @@ async function submitEditarAdmin() {
     nombre:   document.getElementById('ae-nombre').value.trim(),
     username: document.getElementById('ae-username').value.trim(),
     email:    document.getElementById('ae-email').value.trim(),
+    telefono: document.getElementById('ae-telefono').value.trim(),
     password: document.getElementById('ae-password').value || undefined,
   };
 

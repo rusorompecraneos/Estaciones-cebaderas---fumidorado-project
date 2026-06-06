@@ -57,7 +57,7 @@ export async function getAdmins() {
   return repo.findAllAdmins();
 }
 
-export async function createAdmin({ nombre, username, email, password }) {
+export async function createAdmin({ nombre, username, email, password, telefono }) {
   // Verificar unicidad
   const existUser  = await repo.findAdminByUsername(username);
   if (existUser)  return { success: false, field: 'username', message: 'Ese usuario ya existe.' };
@@ -66,11 +66,11 @@ export async function createAdmin({ nombre, username, email, password }) {
   if (existEmail) return { success: false, field: 'email', message: 'Ese correo ya está registrado.' };
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-  const id = await repo.createAdmin({ username, passwordHash, nombre, email });
+  const id = await repo.createAdmin({ username, passwordHash, nombre, email, telefono });
   return { success: true, id };
 }
 
-export async function updateAdmin({ id, nombre, username, email, password }, currentUserId) {
+export async function updateAdmin({ id, nombre, username, email, password, telefono }, currentUserId) {
   const admin = await repo.findAdminById(id);
   if (!admin) return { success: false, message: 'Administrador no encontrado.' };
 
@@ -83,7 +83,7 @@ export async function updateAdmin({ id, nombre, username, email, password }, cur
   if (existEmail && existEmail.id !== parseInt(id))
     return { success: false, field: 'email', message: 'Ese correo ya está registrado.' };
 
-  await repo.updateAdmin({ id, nombre, email, username });
+  await repo.updateAdmin({ id, nombre, email, username, telefono });
 
   if (password) {
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);

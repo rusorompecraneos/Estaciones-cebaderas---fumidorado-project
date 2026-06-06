@@ -6,7 +6,7 @@ import pool from '../config/db.config.js';
 
 export async function findAllAdmins() {
   const { rows } = await pool.query(
-    `SELECT id, username, nombre, email, activo, created_at
+    `SELECT id, username, nombre, email, telefono, activo, created_at
      FROM administradores
      ORDER BY nombre ASC`
   );
@@ -15,7 +15,7 @@ export async function findAllAdmins() {
 
 export async function findAdminById(id) {
   const { rows } = await pool.query(
-    `SELECT id, username, nombre, email, activo
+    `SELECT id, username, nombre, email, telefono, activo
      FROM administradores WHERE id = $1 LIMIT 1`,
     [id]
   );
@@ -38,22 +38,22 @@ export async function findAdminByEmail(email) {
   return rows[0] || null;
 }
 
-export async function createAdmin({ username, passwordHash, nombre, email }) {
+export async function createAdmin({ username, passwordHash, nombre, email, telefono }) {
   const { rows } = await pool.query(
-    `INSERT INTO administradores (username, password, nombre, email)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO administradores (username, password, nombre, email, telefono)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING id`,
-    [username.trim().toLowerCase(), passwordHash, nombre.trim(), email.trim().toLowerCase()]
+    [username.trim().toLowerCase(), passwordHash, nombre.trim(), email.trim().toLowerCase(), telefono?.trim() || null]
   );
   return rows[0].id;
 }
 
-export async function updateAdmin({ id, nombre, email, username }) {
+export async function updateAdmin({ id, nombre, email, username, telefono }) {
   await pool.query(
     `UPDATE administradores
-     SET nombre = $1, email = $2, username = $3, updated_at = NOW()
-     WHERE id = $4`,
-    [nombre.trim(), email.trim().toLowerCase(), username.trim().toLowerCase(), id]
+     SET nombre = $1, email = $2, username = $3, telefono = $4, updated_at = NOW()
+     WHERE id = $5`,
+    [nombre.trim(), email.trim().toLowerCase(), username.trim().toLowerCase(), telefono?.trim() || null, id]
   );
 }
 
