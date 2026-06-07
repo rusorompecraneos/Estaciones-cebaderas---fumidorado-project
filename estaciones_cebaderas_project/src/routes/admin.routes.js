@@ -9,7 +9,7 @@ import {
 } from '../controllers/usuarios.controller.js';
 import { isAuthenticated, requireRole } from '../middlewares/authmiddleware.js';
 
-import { showDiagramas, subirDiagrama, showConfigurar, guardarPuntos, servePdf  } from '../controllers/diagramas.controller.js';
+import { showDiagramas, subirDiagrama, showConfigurar, guardarPuntos, servePdf , eliminarDiagrama} from '../controllers/diagramas.controller.js';
 
 import uploadDiagramas from '../middlewares/uploadDiagramas.js';
 
@@ -51,7 +51,7 @@ router.post(
   '/diagramas-upc/:id/puntos',
   guardarPuntos
 );
-
+router.delete('/diagramas/:id',          eliminarDiagrama);
 
 export default router;
 

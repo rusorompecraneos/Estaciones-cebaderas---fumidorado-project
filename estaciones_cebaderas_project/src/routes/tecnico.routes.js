@@ -17,6 +17,7 @@ import {
   subirFoto,
   borrarFoto,
   finalizarVisita,
+  showMapa,
 } from '../controllers/tecnico.controller.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -71,5 +72,9 @@ router.delete('/estacion/:id',            eliminarEstacion);
 // ── Fotos (AJAX) ──────────────────────────────────────────────────────────────
 router.post('/estacion/:id/foto',  upload.single('foto'), subirFoto);
 router.delete('/foto/:id',                                 borrarFoto);
+
+// ── Mapa ──────────────────────────────────────────────────────────────────────
+router.get('/visita/:visitaId/mapa',                      showMapa);
+
 
 export default router;

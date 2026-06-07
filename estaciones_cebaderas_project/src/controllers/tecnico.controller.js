@@ -177,3 +177,29 @@ export async function finalizarVisita(req, res) {
     return res.status(500).json({ success: false, message: err.message });
   }
 }
+
+// ── GET /tecnico/visita/:visitaId/mapa ────────────────────────────────────────
+export async function showMapa(req, res) {
+  try {
+    const { visita, estaciones, diagrama, puntos } =
+      await tecnicoService.getVisitaDetalle(req.params.visitaId);
+
+    if (!visita) return res.redirect('/tecnico/dashboard');
+
+    if (visita.tecnico_id !== req.session.user.id) {
+      return res.redirect('/tecnico/dashboard');
+    }
+
+    return res.render('tecnico/mapa', {
+      title: `Mapa UPC — ${visita.sede_nombre}`,
+      currentUser: req.session.user,
+      visita,
+      estaciones,
+      diagrama,
+      puntos,
+    });
+  } catch (err) {
+    console.error('[tecnico.controller] showMapa:', err);
+    return res.redirect(`/tecnico/visita/${req.params.visitaId}`);
+  }
+}
