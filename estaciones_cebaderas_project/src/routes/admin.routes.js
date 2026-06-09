@@ -12,10 +12,15 @@ import { isAuthenticated, requireRole } from '../middlewares/authmiddleware.js';
 import { showDiagramas, subirDiagrama, showConfigurar, guardarPuntos, servePdf , eliminarDiagrama} from '../controllers/diagramas.controller.js';
 
 import uploadDiagramas from '../middlewares/uploadDiagramas.js';
+import { showReportes, showReporte } from '../controllers/reportes.controller.js';
 
 
 
 const router = Router();
+
+// PDF accesible por cualquier usuario autenticado (admin y técnico) 
+router.get('/diagramas/:id/pdf', isAuthenticated, servePdf);
+// Resto de rutas admin que requieren rol específico
 router.use(isAuthenticated, requireRole('admin'));
 
 // Dashboard
@@ -52,6 +57,10 @@ router.post(
   guardarPuntos
 );
 router.delete('/diagramas/:id',          eliminarDiagrama);
+
+router.get('/reportes', showReportes);
+
+router.get('/reportes/:visitaId', showReporte);
 
 export default router;
 

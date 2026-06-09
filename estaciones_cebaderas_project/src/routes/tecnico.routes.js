@@ -20,6 +20,9 @@ import {
   showMapa,
 } from '../controllers/tecnico.controller.js';
 
+import { servePdf } from '../controllers/diagramas.controller.js';
+import { showReporte } from '../controllers/reportes.controller.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = dirname(__filename);
 
@@ -75,6 +78,13 @@ router.delete('/foto/:id',                                 borrarFoto);
 
 // ── Mapa ──────────────────────────────────────────────────────────────────────
 router.get('/visita/:visitaId/mapa',                      showMapa);
+
+router.get(
+  '/diagramas-upc/:id/pdf',
+  servePdf
+);
+
+router.get('/visita/:visitaId/reporte', showReporte);
 
 
 export default router;

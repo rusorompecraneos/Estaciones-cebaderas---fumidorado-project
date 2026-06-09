@@ -167,13 +167,36 @@
         <polyline points="15 18 9 12 15 6"/>
       </svg>
     </a>
+
     <div>
       <div class="topbar__title">Mapa UPC</div>
+
       <div class="topbar__sub">
-        <%= visita.cliente_codigo %> — <%= visita.cliente_nombre %> &nbsp;·&nbsp;
+        <%= visita.cliente_codigo %> — <%= visita.cliente_nombre %>
+        &nbsp;·&nbsp;
         Sede <%= visita.sede_codigo %>
       </div>
     </div>
+  </div>
+
+  <div style="display:flex;gap:var(--space-3);">
+    <a href="/tecnico/visita/<%= visita.id %>/reporte"
+       class="btn btn--primary btn--sm"
+       style="display:flex;align-items:center;gap:var(--space-2);">
+
+      <svg width="14"
+           height="14"
+           viewBox="0 0 24 24"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="2">
+        <polyline points="6 9 6 2 18 2 18 9"/>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+        <rect x="6" y="14" width="12" height="8"/>
+      </svg>
+
+      Generar reporte
+    </a>
   </div>
 </header>
 
@@ -245,7 +268,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 const VISITA_ID  = '<%= visita.id %>';
-const PDF_URL    = '/admin/diagramas/<%= diagrama.id %>/pdf';
+const PDF_URL    = '/tecnico/diagramas-upc/<%= diagrama.id %>/pdf';
 
 // Estado de estaciones: { numero: { id, consumo, tipo } }
 const ESTACIONES = <%- JSON.stringify(

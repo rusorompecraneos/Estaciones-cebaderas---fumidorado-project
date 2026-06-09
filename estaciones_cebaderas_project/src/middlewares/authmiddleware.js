@@ -40,7 +40,7 @@ export function requireRole(...roles) {
     if (!req.session?.user) return res.redirect('/auth/login');
 
     if (!roles.includes(req.session.user.role)) {
-      return res.status(403).render('errors/403', {
+      return res.status(403).send('Acceso denegado', {
         title:       'Acceso denegado — FumiDorado',
         currentUser: req.session.user,
         message:     'No tienes permisos para acceder a esta sección.',
@@ -49,3 +49,4 @@ export function requireRole(...roles) {
     return next();
   };
 }
+

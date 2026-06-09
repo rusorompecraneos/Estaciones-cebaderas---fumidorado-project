@@ -295,7 +295,7 @@ function addPunto(tipo, x_pct, y_pct, numero = null) {
   if (!numero) nextNum = Math.max(nextNum, num + 1);
 
   const id = `p-${Date.now()}-${Math.random()}`;
-  puntos.push({ id, numero: num, tipo, x_pct, y_pct });
+  puntos.push({ id, numero: num, tipo, x_pct: Number(x_pct), y_pct: Number(y_pct) });
 
   // Crear elemento visual
   const dot = document.createElement('div');

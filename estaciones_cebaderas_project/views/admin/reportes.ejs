@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/styles.css"/>
+  <style>
+    .page { min-height:100vh; background:var(--color-bg); display:flex; flex-direction:column; }
+
+    .topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:var(--space-4) var(--space-8);
+      background:var(--color-surface); border-bottom:1px solid var(--color-border);
+      position:sticky; top:0; z-index:50;
+    }
+    .topbar__left { display:flex; align-items:center; gap:var(--space-4); }
+    .topbar__back {
+      display:flex; align-items:center; gap:var(--space-2);
+      color:var(--color-text-muted); text-decoration:none;
+      transition:color var(--transition-fast);
+    }
+    .topbar__back:hover { color:var(--color-gold); }
+    .topbar__title { font-family:var(--font-display); font-size:var(--text-lg); font-weight:var(--weight-semi); }
+    .topbar__sub   { font-size:var(--text-xs); color:var(--color-text-muted); }
+
+    .page-content {
+      flex:1; max-width:1100px; width:100%;
+      margin:0 auto; padding:var(--space-8) var(--space-6);
+      display:flex; flex-direction:column; gap:var(--space-6);
+    }
+
+    /* ── Filtros ── */
+    .filter-card {
+      background:var(--color-surface);
+      border:1px solid var(--color-border);
+      border-radius:var(--radius-lg);
+      padding:var(--space-5) var(--space-6);
+    }
+    .filter-card__title {
+      font-family:var(--font-display); font-size:var(--text-sm);
+      font-weight:var(--weight-semi); color:var(--color-text-muted);
+      margin-bottom:var(--space-4);
+      text-transform:uppercase; letter-spacing:.06em; font-size:var(--text-xs);
+    }
+    .filter-row {
+      display:grid; grid-template-columns:1fr 1fr auto;
+      gap:var(--space-3); align-items:end;
+    }
+
+    /* ── Stats resumen ── */
+    .stats-row {
+      display:grid; grid-template-columns:repeat(4,1fr);
+      gap:var(--space-4);
+    }
+    .stat-card {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:var(--space-4) var(--space-5);
+      display:flex; flex-direction:column; gap:var(--space-1);
+    }
+    .stat-card__num {
+      font-family:var(--font-display); font-size:var(--text-2xl);
+      font-weight:var(--weight-bold); color:var(--color-text);
+    }
+    .stat-card__num--gold  { color:var(--color-gold); }
+    .stat-card__num--green { color:var(--color-success); }
+    .stat-card__num--red   { color:var(--color-error); }
+    .stat-card__label { font-size:var(--text-xs); color:var(--color-text-muted); }
+
+    /* ── Tabla ── */
+    .section-header {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:var(--space-4);
+    }
+    .section-title { font-family:var(--font-display); font-size:var(--text-lg); font-weight:var(--weight-semi); }
+
+    .table-wrapper { border:1px solid var(--color-border-gold); border-radius:var(--radius-lg); overflow:hidden; }
+    table { width:100%; border-collapse:collapse; font-size:var(--text-sm); }
+    thead { background:var(--color-surface-2); }
+    thead th {
+      padding:var(--space-3) var(--space-5); text-align:left;
+      font-family:var(--font-display); font-weight:var(--weight-semi);
+      font-size:var(--text-xs); color:var(--color-text-muted);
+      text-transform:uppercase; letter-spacing:.06em;
+      border-bottom:1px solid var(--color-border);
+    }
+    tbody tr { border-bottom:1px solid var(--color-border); transition:background var(--transition-fast); }
+    tbody tr:last-child { border-bottom:none; }
+    tbody tr:hover { background:var(--color-gold-muted); }
+    tbody td { padding:var(--space-4) var(--space-5); color:var(--color-text); vertical-align:middle; }
+    .td-muted { color:var(--color-text-muted); font-size:var(--text-xs); }
+
+    /* Barrita de consumo */
+    .consumo-bar {
+      display:flex; gap:2px; height:6px; border-radius:99px; overflow:hidden;
+      width:80px; background:var(--color-surface-3);
+    }
+    .consumo-bar__seg { height:100%; border-radius:99px; }
+
+    /* Dots de estaciones */
+    .est-dots { display:flex; gap:3px; flex-wrap:wrap; max-width:120px; }
+    .est-dot  { width:8px; height:8px; border-radius:50%; }
+
+    .btn-ver {
+      display:inline-flex; align-items:center; gap:var(--space-2);
+      padding:var(--space-2) var(--space-4);
+      border-radius:var(--radius-md);
+      border:1px solid var(--color-border-gold);
+      background:transparent;
+      color:var(--color-gold); font-size:var(--text-xs);
+      font-family:var(--font-display); font-weight:var(--weight-semi);
+      text-decoration:none; cursor:pointer;
+      transition:all var(--transition-fast);
+    }
+    .btn-ver:hover { background:var(--color-gold-muted); }
+
+    .empty-row td { text-align:center; padding:var(--space-10); color:var(--color-text-faint); font-size:var(--text-sm); }
+
+    /* Spinner sedes */
+    .select-loading { opacity:.5; pointer-events:none; }
+
+    @media(max-width:768px) {
+      .filter-row  { grid-template-columns:1fr; }
+      .stats-row   { grid-template-columns:repeat(2,1fr); }
+      .page-content { padding:var(--space-4); }
+      .topbar { padding:var(--space-4); }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header class="topbar">
+    <div class="topbar__left">
+      <a href="/admin/dashboard" class="topbar__back">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </a>
+      <div>
+        <div class="topbar__title">Reportes y Consumo</div>
+        <div class="topbar__sub">Historial de visitas finalizadas</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <!-- Filtros -->
+    <div class="filter-card">
+      <div class="filter-card__title">Filtrar por</div>
+      <form method="GET" action="/admin/reportes" id="filter-form">
+        <div class="filter-row">
+          <div class="form-group">
+            <label class="form-label">Cliente</label>
+            <select class="form-control" name="clienteId" id="f-cliente" onchange="this.form.submit()">
+              <option value="">Todos los clientes</option>
+              <% clientes.forEach(c => { %>
+                <option value="<%= c.id %>" <%= filtros.clienteId == c.id ? 'selected' : '' %>>
+                  <%= c.codigo %> — <%= c.nombre %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sede</label>
+            <select class="form-control" name="sedeId" id="f-sede" onchange="this.form.submit()">
+              <option value="">Todas las sedes</option>
+              <% sedes.forEach(s => { %>
+                <option value="<%= s.id %>" <%= filtros.sedeId == s.id ? 'selected' : '' %>>
+                  <%= s.codigo %> — <%= s.nombre %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+          <% if (filtros.clienteId || filtros.sedeId) { %>
+            <a href="/admin/reportes" class="btn btn--ghost btn--sm" style="align-self:end;">
+              Limpiar
+            </a>
+          <% } %>
+        </div>
+      </form>
+    </div>
+
+    <!-- Stats globales del filtro actual -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-card__num stat-card__num--gold"><%= visitas.length %></span>
+        <span class="stat-card__label">Visitas finalizadas</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__num">
+          <%= visitas.reduce((acc, v) => acc + parseInt(v.total_estaciones), 0) %>
+        </span>
+        <span class="stat-card__label">Estaciones revisadas</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__num stat-card__num--red">
+          <%= visitas.reduce((acc, v) => acc + parseInt(v.con_consumo), 0) %>
+        </span>
+        <span class="stat-card__label">Con consumo (total)</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__num stat-card__num--green">
+          <%= visitas.reduce((acc, v) => acc + parseInt(v.sin_consumo), 0) %>
+        </span>
+        <span class="stat-card__label">Sin consumo (total)</span>
+      </div>
+    </div>
+
+    <!-- Tabla de visitas -->
+    <section>
+      <div class="section-header">
+        <div class="section-title">Visitas</div>
+        <span style="font-size:var(--text-xs);color:var(--color-text-muted);">
+          <%= visitas.length %> resultado<%= visitas.length !== 1 ? 's' : '' %>
+        </span>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Cliente / Sede</th>
+              <th>Técnico</th>
+              <th>Estaciones</th>
+              <th>Consumo</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (visitas.length === 0) { %>
+              <tr class="empty-row">
+                <td colspan="6">No hay visitas finalizadas con los filtros seleccionados.</td>
+              </tr>
+            <% } %>
+            <% visitas.forEach(v => {
+              const total = parseInt(v.total_estaciones);
+              const cc    = parseInt(v.con_consumo);
+              const sc    = parseInt(v.sin_consumo);
+              const cap   = parseInt(v.captura);
+            %>
+              <tr>
+                <td>
+                  <div style="font-weight:500;">
+                    <%= new Date(v.fecha).toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'}) %>
+                  </div>
+                  <div class="td-muted"><%= v.hora_inicio ? v.hora_inicio.slice(0,5) : '—' %></div>
+                </td>
+                <td>
+                  <div style="font-weight:500;"><%= v.cliente_codigo %> — <%= v.cliente_nombre %></div>
+                  <div class="td-muted">Sede <%= v.sede_codigo %> · <%= v.sede_nombre %></div>
+                </td>
+                <td class="td-muted"><%= v.tecnico_nombre %></td>
+                <td>
+                  <div style="font-weight:500; margin-bottom:4px;"><%= total %> estaciones</div>
+                  <div class="est-dots">
+                    <% for(let i=0; i<Math.min(cc,10);  i++) { %><div class="est-dot" style="background:#D94F4F;"></div><% } %>
+                    <% for(let i=0; i<Math.min(sc,10);  i++) { %><div class="est-dot" style="background:#3B9B5C;"></div><% } %>
+                    <% for(let i=0; i<Math.min(cap,10); i++) { %><div class="est-dot" style="background:#E09B35;"></div><% } %>
+                  </div>
+                </td>
+                <td>
+                  <% if (total > 0) { %>
+                    <div class="consumo-bar">
+                      <% if (cc  > 0) { %><div class="consumo-bar__seg" style="width:<%= cc/total*100 %>%;background:#D94F4F;"></div><% } %>
+                      <% if (sc  > 0) { %><div class="consumo-bar__seg" style="width:<%= sc/total*100 %>%;background:#3B9B5C;"></div><% } %>
+                      <% if (cap > 0) { %><div class="consumo-bar__seg" style="width:<%= cap/total*100 %>%;background:#E09B35;"></div><% } %>
+                    </div>
+                    <div class="td-muted" style="margin-top:3px;">
+                      <span style="color:#D94F4F;"><%= cc %> cc</span> ·
+                      <span style="color:#3B9B5C;"><%= sc %> sc</span>
+                      <% if (cap > 0) { %> · <span style="color:#E09B35;"><%= cap %> cap</span><% } %>
+                    </div>
+                  <% } else { %>
+                    <span class="td-muted">Sin datos</span>
+                  <% } %>
+                </td>
+                <td>
+                  <a class="btn-ver" href="/admin/reportes/<%= v.id %>">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    Ver reporte
+                  </a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+</body>
+</html>
