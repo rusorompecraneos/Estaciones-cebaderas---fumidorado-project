@@ -145,3 +145,26 @@ export async function deleteFoto(id) {
   );
   return rows[0] || null;
 }
+
+// ── Historial de visitas del técnico ─────────────────────────────────────────
+
+export async function findVisitasByTecnico(tecnicoId) {
+  const { rows } = await pool.query(
+    `SELECT
+       v.id, v.fecha, v.hora_inicio, v.hora_fin, v.estado,
+       s.id AS sede_id, s.nombre AS sede_nombre, s.codigo AS sede_codigo,
+       c.id AS cliente_id, c.nombre AS cliente_nombre, c.codigo AS cliente_codigo,
+       (SELECT COUNT(*) FROM estaciones e WHERE e.visita_id = v.id) AS total_estaciones,
+       (SELECT COUNT(*) FROM estaciones e WHERE e.visita_id = v.id AND e.consumo != 'pendiente' AND e.consumo IS NOT NULL) AS revisadas,
+       (SELECT COUNT(*) FROM estaciones e WHERE e.visita_id = v.id AND e.consumo = 'con_consumo') AS con_consumo,
+       (SELECT COUNT(*) FROM estaciones e WHERE e.visita_id = v.id AND e.consumo = 'sin_consumo') AS sin_consumo,
+       (SELECT COUNT(*) FROM estaciones e WHERE e.visita_id = v.id AND e.consumo = 'captura')     AS captura
+     FROM visitas v
+     JOIN sedes     s ON s.id = v.sede_id
+     JOIN clientes  c ON c.id = s.cliente_id
+     WHERE v.tecnico_id = $1
+     ORDER BY v.fecha DESC, v.hora_inicio DESC`,
+    [tecnicoId]
+  );
+  return rows;
+}

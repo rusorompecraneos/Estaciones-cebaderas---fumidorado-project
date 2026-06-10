@@ -10,6 +10,25 @@ import { dirname }       from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = dirname(__filename);
 
+// ── GET /tecnico/mis-visitas──────────────────────────────────────────────────
+export async function showMisVisitas(req, res) {
+  try {
+    const visitas = await tecnicoService.getVisitasByTecnico(req.session.user.id);
+    return res.render('tecnico/mis-visitas', {
+      title:       'Mis Visitas — FumiDorado',
+      currentUser: req.session.user,
+      visitas,
+    });
+  } catch (err) {
+    console.error('[tecnico.controller] showMisVisitas:', err);
+    return res.render('tecnico/mis-visitas', {
+      title:       'Mis Visitas — FumiDorado',
+      currentUser: req.session.user,
+      visitas:     [],
+    });
+  }
+}
+
 // ── GET /tecnico/dashboard ────────────────────────────────────────────────────
 export async function showDashboard(req, res) {
   try {

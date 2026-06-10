@@ -574,10 +574,27 @@ document.querySelectorAll('.estacion-card').forEach(initCard);
 // ── Finalizar visita ─────────────────────────────────────────────────────────
 document.getElementById('btn-finalizar').addEventListener('click', async function () {
   if (!confirm('¿Finalizar la visita? Ya no podrás editar las estaciones.')) return;
-  const res  = await fetch(`/tecnico/visita/${VISITA_ID}/finalizar`, { method: 'POST' });
-  const data = await res.json();
-  if (data.success) window.location.href = data.redirect;
-  else alert('Error finalizando visita.');
+  this.disabled = true;
+  this.textContent = 'Finalizando...';
+  try {
+    const res  = await fetch(`/tecnico/visita/${VISITA_ID}/finalizar`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({}),
+    });
+    const data = await res.json();
+    if (data.success) {
+      window.location.href = data.redirect;
+    } else {
+      alert('Error: ' + (data.message || 'No se pudo finalizar.'));
+      this.disabled = false;
+      this.textContent = 'Finalizar visita';
+    }
+  } catch(err) {
+    alert('Error de conexión al finalizar la visita.');
+    this.disabled = false;
+    this.textContent = 'Finalizar visita';
+  }
 });
 </script>
 

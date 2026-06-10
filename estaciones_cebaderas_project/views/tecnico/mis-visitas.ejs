@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/styles.css"/>
+  <style>
+    .page { min-height:100vh; background:var(--color-bg); display:flex; flex-direction:column; }
+
+    /* ── Topbar ── */
+    .topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:var(--space-4) var(--space-8);
+      background:var(--color-surface); border-bottom:1px solid var(--color-border);
+      position:sticky; top:0; z-index:50;
+    }
+    .topbar__brand { display:flex; align-items:center; gap:var(--space-3); }
+    .topbar__logo {
+      width:38px; height:38px; background:var(--color-gold);
+      border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center;
+      font-family:var(--font-display); font-weight:var(--weight-bold);
+      font-size:var(--text-sm); color:#111;
+    }
+    .topbar__name { font-family:var(--font-display); font-size:var(--text-md); font-weight:var(--weight-semi); }
+    .topbar__sub  { font-size:var(--text-xs); color:var(--color-text-muted); }
+    .topbar__right { display:flex; align-items:center; gap:var(--space-3); }
+    .topbar__avatar {
+      width:36px; height:36px; border-radius:50%;
+      background:var(--color-info); color:#fff;
+      font-family:var(--font-display); font-weight:var(--weight-bold);
+      font-size:var(--text-xs); display:flex; align-items:center; justify-content:center;
+    }
+    .topbar__logout {
+      display:flex; align-items:center; gap:var(--space-2);
+      padding:var(--space-2) var(--space-3);
+      border-radius:var(--radius-md); border:1px solid var(--color-border);
+      background:transparent; color:var(--color-text-muted);
+      font-size:var(--text-xs); font-family:var(--font-display);
+      font-weight:var(--weight-medium); cursor:pointer; text-decoration:none;
+      transition:all var(--transition-fast);
+    }
+    .topbar__logout:hover { border-color:var(--color-error); color:var(--color-error); }
+
+    /* ── Contenido ── */
+    .page-content {
+      flex:1; max-width:900px; width:100%;
+      margin:0 auto; padding:var(--space-8) var(--space-6);
+      display:flex; flex-direction:column; gap:var(--space-6);
+    }
+
+    /* ── Header de sección ── */
+    .section-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding-bottom:var(--space-5); border-bottom:1px solid var(--color-border);
+    }
+    .section-title { font-family:var(--font-display); font-size:var(--text-2xl); font-weight:var(--weight-bold); }
+    .section-sub   { font-size:var(--text-sm); color:var(--color-text-muted); margin-top:var(--space-1); }
+
+    /* ── Tabs de filtro ── */
+    .tabs { display:flex; gap:var(--space-2); }
+    .tab-btn {
+      padding:var(--space-2) var(--space-4);
+      border-radius:var(--radius-full);
+      border:1px solid var(--color-border);
+      background:transparent; color:var(--color-text-muted);
+      font-size:var(--text-xs); font-family:var(--font-display);
+      font-weight:var(--weight-semi); cursor:pointer;
+      transition:all var(--transition-fast);
+    }
+    .tab-btn:hover  { border-color:var(--color-gold); color:var(--color-gold); }
+    .tab-btn.active { background:var(--color-text-primary); color:#111; border-color:transparent;
+                      background:var(--color-gold); }
+
+    /* ── Lista de visitas ── */
+    .visitas-list { display:flex; flex-direction:column; gap:var(--space-3); }
+
+    /* ── Card de visita ── */
+    .visita-card {
+      display:flex; align-items:center; gap:var(--space-5);
+      padding:var(--space-5) var(--space-6);
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); text-decoration:none;
+      transition:border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-fast);
+    }
+    .visita-card:hover {
+      border-color:var(--color-gold); box-shadow:var(--shadow-gold);
+      transform:translateY(-1px);
+    }
+    .visita-card--en-progreso { border-left:3px solid var(--color-warning); }
+    .visita-card--finalizada  { border-left:3px solid var(--color-success); }
+
+    /* Ícono de estado */
+    .visita-card__icon {
+      width:44px; height:44px; flex-shrink:0;
+      border-radius:var(--radius-md);
+      display:flex; align-items:center; justify-content:center;
+      font-size:20px;
+    }
+    .visita-card__icon--progreso  { background:rgba(230,168,23,.12); }
+    .visita-card__icon--finalizada { background:rgba(61,186,122,.12); }
+
+    /* Info principal */
+    .visita-card__info { flex:1; display:flex; flex-direction:column; gap:var(--space-1); }
+    .visita-card__cliente {
+      font-family:var(--font-display); font-size:var(--text-md);
+      font-weight:var(--weight-semi); color:var(--color-text);
+    }
+    .visita-card__sede { font-size:var(--text-sm); color:var(--color-text-muted); }
+    .visita-card__fecha { font-size:var(--text-xs); color:var(--color-text-faint); margin-top:2px; }
+
+    /* Estadísticas pequeñas */
+    .visita-card__stats { display:flex; flex-direction:column; align-items:flex-end; gap:var(--space-2); flex-shrink:0; }
+    .visita-card__est-count {
+      font-family:var(--font-display); font-size:var(--text-sm);
+      font-weight:var(--weight-semi); color:var(--color-text);
+    }
+
+    /* Mini dots consumo */
+    .mini-consumo { display:flex; gap:2px; }
+    .mini-consumo__dot { width:7px; height:7px; border-radius:50%; }
+
+    /* Badge estado */
+    .estado-badge {
+      display:inline-flex; align-items:center; gap:var(--space-1);
+      padding:2px var(--space-3); border-radius:var(--radius-full);
+      font-size:var(--text-xs); font-weight:var(--weight-semi);
+      font-family:var(--font-display);
+    }
+    .estado-badge--progreso  { background:rgba(230,168,23,.12); color:var(--color-warning); }
+    .estado-badge--finalizada { background:rgba(61,186,122,.12); color:var(--color-success); }
+
+    /* Flecha */
+    .visita-card__arrow { color:var(--color-text-faint); flex-shrink:0; transition:color var(--transition-fast), transform var(--transition-fast); }
+    .visita-card:hover .visita-card__arrow { color:var(--color-gold); transform:translateX(3px); }
+
+    /* Empty state */
+    .empty-state {
+      text-align:center; padding:var(--space-12) var(--space-6);
+      background:var(--color-surface); border:2px dashed var(--color-border);
+      border-radius:var(--radius-xl); color:var(--color-text-faint);
+    }
+    .empty-state__icon { font-size:2.5rem; margin-bottom:var(--space-3); }
+    .empty-state__text { font-size:var(--text-sm); }
+
+    @media(max-width:640px) {
+      .page-content { padding:var(--space-4); }
+      .topbar { padding:var(--space-4); }
+      .visita-card { flex-wrap:wrap; }
+      .topbar__name, .topbar__sub { display:none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar__brand">
+      <div class="topbar__logo">FD</div>
+      <div>
+        <div class="topbar__name">Fumi Dorado S.A.S</div>
+        <div class="topbar__sub">Sistema de gestión de servicios</div>
+      </div>
+    </div>
+    <div class="topbar__right">
+      <div class="topbar__avatar">
+        <%= currentUser.iniciales || currentUser.nombre.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase() %>
+      </div>
+      <a href="/auth/logout" class="topbar__logout">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Salir
+      </a>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <!-- Header -->
+    <div class="section-header">
+      <div>
+        <h1 class="section-title">Mis visitas</h1>
+        <p class="section-sub">
+          <%= visitas.length %> visita<%= visitas.length !== 1 ? 's' : '' %> registrada<%= visitas.length !== 1 ? 's' : '' %>
+        </p>
+      </div>
+      <a href="/tecnico/dashboard" class="btn btn--primary btn--sm">
+        + Nueva visita
+      </a>
+    </div>
+
+    <!-- Filtro por estado -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="filtrar('todas',    this)">Todas (<%= visitas.length %>)</button>
+      <button class="tab-btn"        onclick="filtrar('progreso', this)">En progreso (<%= visitas.filter(v => v.estado === 'en_progreso').length %>)</button>
+      <button class="tab-btn"        onclick="filtrar('final',    this)">Finalizadas (<%= visitas.filter(v => v.estado === 'finalizada').length %>)</button>
+    </div>
+
+    <!-- Lista -->
+    <div class="visitas-list" id="visitas-list">
+
+      <% if (visitas.length === 0) { %>
+        <div class="empty-state">
+          <div class="empty-state__icon">📋</div>
+          <p class="empty-state__text">Aún no tienes visitas registradas.<br>Inicia una nueva desde el dashboard.</p>
+        </div>
+      <% } %>
+
+      <% visitas.forEach(v => {
+        const total   = parseInt(v.total_estaciones) || 0;
+        const cc      = parseInt(v.con_consumo) || 0;
+        const sc      = parseInt(v.sin_consumo) || 0;
+        const cap     = parseInt(v.captura)     || 0;
+        const revisadas = parseInt(v.revisadas) || 0;
+        const enProgreso = v.estado === 'en_progreso';
+        const href = enProgreso
+          ? `/tecnico/visita/${v.id}`
+          : `/tecnico/visita/${v.id}/reporte`;
+      %>
+        <a href="<%= href %>"
+           class="visita-card visita-card--<%= enProgreso ? 'en-progreso' : 'finalizada' %>"
+           data-estado="<%= v.estado %>">
+
+          <!-- Ícono -->
+          <div class="visita-card__icon visita-card__icon--<%= enProgreso ? 'progreso' : 'finalizada' %>">
+            <%= enProgreso ? '🔧' : '✅' %>
+          </div>
+
+          <!-- Info -->
+          <div class="visita-card__info">
+            <div class="visita-card__cliente">
+              <%= v.cliente_codigo %> — <%= v.cliente_nombre %>
+            </div>
+            <div class="visita-card__sede">
+              Sede <%= v.sede_codigo %> · <%= v.sede_nombre %>
+            </div>
+            <div class="visita-card__fecha">
+              <%= new Date(v.fecha).toLocaleDateString('es-CO', {day:'2-digit', month:'long', year:'numeric'}) %>
+              <% if (v.hora_inicio) { %> · <%= v.hora_inicio.slice(0,5) %><% } %>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="visita-card__stats">
+            <span class="estado-badge estado-badge--<%= enProgreso ? 'progreso' : 'finalizada' %>">
+              <span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;"></span>
+              <%= enProgreso ? 'En progreso' : 'Finalizada' %>
+            </span>
+
+            <% if (total > 0) { %>
+              <span class="visita-card__est-count"><%= revisadas %>/<%= total %> revisadas</span>
+              <div class="mini-consumo">
+                <% for(let i=0; i<Math.min(cc,  8); i++) { %><div class="mini-consumo__dot" style="background:#D94F4F;"></div><% } %>
+                <% for(let i=0; i<Math.min(sc,  8); i++) { %><div class="mini-consumo__dot" style="background:#3B9B5C;"></div><% } %>
+                <% for(let i=0; i<Math.min(cap, 8); i++) { %><div class="mini-consumo__dot" style="background:#E09B35;"></div><% } %>
+              </div>
+            <% } else { %>
+              <span style="font-size:var(--text-xs);color:var(--color-text-faint);">Sin estaciones</span>
+            <% } %>
+          </div>
+
+          <!-- Flecha -->
+          <svg class="visita-card__arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+
+        </a>
+      <% }) %>
+
+    </div>
+
+  </main>
+</div>
+
+<script>
+function filtrar(tipo, btn) {
+  // Actualizar tabs
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  // Filtrar cards
+  document.querySelectorAll('.visita-card').forEach(card => {
+    const estado = card.dataset.estado;
+    const show =
+      tipo === 'todas'   ||
+      (tipo === 'progreso' && estado === 'en_progreso') ||
+      (tipo === 'final'    && estado === 'finalizada');
+    card.style.display = show ? '' : 'none';
+  });
+}
+</script>
+
+</body>
+</html>

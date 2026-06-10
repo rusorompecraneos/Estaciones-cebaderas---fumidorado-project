@@ -210,6 +210,15 @@
       .firmas-grid, .rpt-footer-bar { color:#111 !important; background:#fff !important; border-color:#ddd !important; }
       .rpt-stat__label, .rpt-info-field__label, .td-muted { color:#555 !important; }
       .rpt-header__date { color:#c9962a !important; }
+
+      /* Forzar que los puntos se impriman con color */
+      .rpt-punto { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+      .rpt-punto.sin_consumo { background:#3B9B5C !important; }
+      .rpt-punto.con_consumo { background:#D94F4F !important; }
+      .rpt-punto.captura     { background:#E09B35 !important; }
+      .rpt-punto.pendiente   { background:#555450 !important; }
+      .mapa-wrap { position:relative !important; }
+      #rpt-canvas-print { width:100% !important; height:auto !important; }
     }
 
     @media(max-width:768px) {
@@ -517,6 +526,25 @@ async function renderMapa() {
 }
 
 renderMapa();
+
+// ── Fix impresión: convertir canvas a imagen antes de imprimir ──────────────
+window.addEventListener('beforeprint', function () {
+  const canvas = document.getElementById('rpt-canvas');
+  if (!canvas || canvas.style.display === 'none') return;
+  const img = document.createElement('img');
+  img.id    = 'rpt-canvas-print';
+  img.src   = canvas.toDataURL('image/png');
+  img.style.cssText = 'width:100%;display:block;';
+  canvas.style.display = 'none';
+  canvas.parentNode.insertBefore(img, canvas);
+});
+
+window.addEventListener('afterprint', function () {
+  const img    = document.getElementById('rpt-canvas-print');
+  const canvas = document.getElementById('rpt-canvas');
+  if (img)    img.remove();
+  if (canvas) canvas.style.display = 'block';
+});
 </script>
 <% } %>
 

@@ -131,3 +131,9 @@ export async function getFotosByEstacion(estacionId) {
 export async function eliminarFoto(id) {
   return repo.deleteFoto(id);
 }
+
+// ── Historial de visitas del técnico ─────────────────────────────────────────
+ 
+export async function getVisitasByTecnico(tecnicoId) {
+  return repo.findVisitasByTecnico(tecnicoId);
+}

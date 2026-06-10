@@ -18,6 +18,7 @@ import {
   borrarFoto,
   finalizarVisita,
   showMapa,
+  showMisVisitas,
 } from '../controllers/tecnico.controller.js';
 
 import { servePdf } from '../controllers/diagramas.controller.js';
@@ -54,6 +55,8 @@ router.use(isAuthenticated, requireRole('tecnico'));
 
 // ── Dashboard (selector cliente/sede) ────────────────────────────────────────
 router.get('/dashboard',              showDashboard);
+
+router.get('/mis-visitas',              showMisVisitas);        // ← nueva
 
 // ── AJAX: sedes por cliente ───────────────────────────────────────────────────
 router.get('/sedes/:clienteId',       getSedesAjax);
