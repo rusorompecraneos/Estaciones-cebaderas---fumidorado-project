@@ -532,24 +532,36 @@ function initCard(card) {
     const file = this.files[0];
     if (!file) return;
 
+    // Prevenir doble envío
+    if (uploadBtn.dataset.uploading === 'true') return;
+    uploadBtn.dataset.uploading = 'true';
+    uploadBtn.style.opacity = '0.5';
+
     const formData = new FormData();
     formData.append('foto', file);
 
-    const res  = await fetch(`/tecnico/estacion/${estId}/foto`, { method: 'POST', body: formData });
-    const data = await res.json();
-    if (!data.success) return alert('Error subiendo foto.');
+    try {
+      const res  = await fetch(`/tecnico/estacion/${estId}/foto`, { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!data.success) { alert('Error subiendo foto.'); return; }
 
-    // Agregar thumb al grid
-    const grid  = card.querySelector('.fotos-grid');
-    const thumb = document.createElement('div');
-    thumb.className    = 'foto-thumb';
-    thumb.dataset.fotoId = data.fotoId || '';
-    thumb.innerHTML = `
-      <img src="${data.url}" alt="Foto estación"/>
-      <button class="foto-thumb__del" title="Eliminar foto">✕</button>`;
-    thumb.querySelector('.foto-thumb__del').addEventListener('click', () => deleteFoto(thumb, data.fotoId));
-    grid.insertBefore(thumb, uploadBtn);
-    this.value = '';
+      // Agregar thumb al grid
+      const grid  = card.querySelector('.fotos-grid');
+      const thumb = document.createElement('div');
+      thumb.className      = 'foto-thumb';
+      thumb.dataset.fotoId = data.fotoId || '';
+      thumb.innerHTML = `
+        <img src="${data.url}" alt="Foto estación"/>
+        <button class="foto-thumb__del" title="Eliminar foto">✕</button>`;
+      thumb.querySelector('.foto-thumb__del').addEventListener('click', () => deleteFoto(thumb, data.fotoId));
+      // Insertar antes del botón de cámara
+      const camBtn = card.querySelector('.upload-btn');
+      grid.insertBefore(thumb, camBtn);
+    } finally {
+      this.value = '';
+      uploadBtn.dataset.uploading = 'false';
+      uploadBtn.style.opacity = '1';
+    }
   });
 }
 

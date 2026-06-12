@@ -5,6 +5,7 @@ import session        from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import fs               from 'fs';
 
 
 import pool           from './config/db.config.js';

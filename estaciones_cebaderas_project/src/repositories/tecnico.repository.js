@@ -90,6 +90,7 @@ export async function findEstacionesByVisita(visitaId) {
      ORDER BY numero ASC`,
     [visitaId]
   );
+  
   return rows;
 }
 

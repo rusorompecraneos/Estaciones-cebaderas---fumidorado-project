@@ -104,13 +104,13 @@
     }
 
     .mapa-wrap {
-      position:relative; display:inline-block;
+      position:relative;
       width:100%; border-radius:var(--radius-lg);
       border:1px solid var(--color-border);
       background:var(--color-surface-2);
       overflow:hidden;
     }
-    #rpt-canvas { width:100%; display:block; }
+    #rpt-canvas { width:100%; height:auto; display:block; }
 
     .rpt-punto {
       position:absolute;
@@ -496,33 +496,91 @@ const CONSUMO_MAP = <%- JSON.stringify(
   }, {})
 ) %>;
 
+// ── Colores por estado de consumo ────────────────────────────────────────────
+const CONSUMO_COLORS = {
+  sin_consumo: { r: 59,  g: 155, b: 92,  label: 'Sin consumo'  },
+  con_consumo: { r: 217, g: 79,  b: 79,  label: 'Con consumo'  },
+  captura:     { r: 224, g: 155, b: 53,  label: 'Captura'      },
+  pendiente:   { r: 85,  g: 84,  b: 80,  label: 'Sin revisar'  },
+};
+
 async function renderMapa() {
   const canvas   = document.getElementById('rpt-canvas');
   const ctx      = canvas.getContext('2d');
   const mapaWrap = document.getElementById('mapa-wrap');
 
+  // 1. Renderizar el PDF
   const pdf      = await pdfjsLib.getDocument(PDF_URL).promise;
   const page     = await pdf.getPage(1);
   const viewport = page.getViewport({ scale: 1.5 });
 
   canvas.width  = viewport.width;
   canvas.height = viewport.height;
-
   await page.render({ canvasContext: ctx, viewport }).promise;
 
-  document.getElementById('pdf-loading').style.display = 'none';
-  canvas.style.display = 'block';
+  // 2. Dibujar capa de heatmap encima del PDF
+  const W = canvas.width;
+  const H = canvas.height;
 
-  // Renderizar puntos con color de consumo
+  // Radio del gradiente en píxeles (proporcional al canvas)
+  const baseRadius = Math.min(W, H) * 0.09;
+
   PUNTOS.forEach(p => {
     const consumo = CONSUMO_MAP[p.numero] || 'pendiente';
-    const dot = document.createElement('div');
-    dot.className   = `rpt-punto ${consumo}`;
-    dot.textContent = p.numero;
-    dot.style.left  = `${p.x_pct}%`;
-    dot.style.top   = `${p.y_pct}%`;
-    mapaWrap.appendChild(dot);
+    const col     = CONSUMO_COLORS[consumo];
+    const cx      = (p.x_pct / 100) * W;
+    const cy      = (p.y_pct / 100) * H;
+
+    // Radial gradient: centro opaco, borde transparente
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, baseRadius);
+    grad.addColorStop(0,    `rgba(${col.r}, ${col.g}, ${col.b}, 0.70)`);
+    grad.addColorStop(0.35, `rgba(${col.r}, ${col.g}, ${col.b}, 0.45)`);
+    grad.addColorStop(0.70, `rgba(${col.r}, ${col.g}, ${col.b}, 0.18)`);
+    grad.addColorStop(1,    `rgba(${col.r}, ${col.g}, ${col.b}, 0.00)`);
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, baseRadius, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
   });
+
+  // 3. Dibujar círculos con número encima del heatmap
+  const DOT_R    = Math.min(W, H) * 0.018;
+  const FONT_SZ  = Math.max(9, DOT_R * 1.1);
+
+  PUNTOS.forEach(p => {
+    const consumo = CONSUMO_MAP[p.numero] || 'pendiente';
+    const col     = CONSUMO_COLORS[consumo];
+    const cx      = (p.x_pct / 100) * W;
+    const cy      = (p.y_pct / 100) * H;
+
+    // Sombra suave
+    ctx.shadowColor   = 'rgba(0,0,0,0.35)';
+    ctx.shadowBlur    = 4;
+
+    // Círculo sólido
+    ctx.beginPath();
+    ctx.arc(cx, cy, DOT_R, 0, Math.PI * 2);
+    ctx.fillStyle = `rgb(${col.r}, ${col.g}, ${col.b})`;
+    ctx.fill();
+
+    // Borde blanco
+    ctx.shadowBlur    = 0;
+    ctx.strokeStyle   = 'rgba(255,255,255,0.9)';
+    ctx.lineWidth     = 1.5;
+    ctx.stroke();
+
+    // Número
+    ctx.fillStyle   = '#ffffff';
+    ctx.font        = `bold ${FONT_SZ}px sans-serif`;
+    ctx.textAlign   = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.numero, cx, cy);
+  });
+
+  // 4. Mostrar canvas
+  document.getElementById('pdf-loading').style.display = 'none';
+  canvas.style.display = 'block';
 }
 
 renderMapa();

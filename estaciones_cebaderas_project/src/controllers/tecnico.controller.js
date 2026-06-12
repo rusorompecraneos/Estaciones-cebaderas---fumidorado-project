@@ -155,16 +155,17 @@ export async function subirFoto(req, res) {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'No se recibió ninguna foto.' });
 
-    await guardarFoto({
-      estacionId:   req.params.id,
-      filename:     req.file.filename,
+    const fotoId = await guardarFoto({
+      estacionId: req.params.id,
+      filename: req.file.filename,
       originalName: req.file.originalname,
-      mimetype:     req.file.mimetype,
-      size:         req.file.size,
-    });
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+});
 
     return res.json({
       success:  true,
+      fotoId, 
       filename: req.file.filename,
       url:      `/uploads/estaciones/${req.file.filename}`,
     });
