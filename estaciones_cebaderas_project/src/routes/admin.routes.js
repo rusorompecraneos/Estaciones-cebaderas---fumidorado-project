@@ -56,11 +56,13 @@ router.post(
   '/diagramas-upc/:id/puntos',
   guardarPuntos
 );
-router.delete('/diagramas/:id',          eliminarDiagrama);
+router.delete('/diagramas-upc/:id',          eliminarDiagrama);
 
 router.get('/reportes', showReportes);
 
 router.get('/reportes/:visitaId', showReporte);
+
+
 
 export default router;
 

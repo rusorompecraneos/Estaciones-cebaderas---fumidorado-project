@@ -1,0 +1,424 @@
+[
+  {
+    "codigo": "1",
+    "nit": "860049210",
+    "nombre": "A.W FABER CASTELL COLOMBIA LTDA",
+    "sedes": [
+      {
+        "codigo": "5",
+        "nombre": "PRINCIPAL",
+        "direccion": "CLL. 17 A NO. 68-70"
+      }
+    ]
+  },
+  {
+    "codigo": "4",
+    "nit": "800185781",
+    "nombre": "AEROREPUBLICA S.A",
+    "sedes": [
+      {
+        "codigo": "18",
+        "nombre": "TERMINAL AEREO SIMON BOLIVAR",
+        "direccion": "AV EL DORADO # 103 - 08 ENTRADA 1 HANGAR TASB"
+      }
+    ]
+  },
+  {
+    "codigo": "5",
+    "nit": "890100577",
+    "nombre": "SODEXO / AEROVIAS DEL CONTINENTE AMERICANO S.A",
+    "sedes": [
+      {
+        "codigo": "156",
+        "nombre": "SALA VIP NACIONAL",
+        "direccion": "AEROPUERTO EL DORADO, MUELLE NACIONAL"
+      },
+      {
+        "codigo": "184",
+        "nombre": "CARPA - HANGAR",
+        "direccion": "AEROPUERTO EL DORADO - POSICION GOLFO"
+      },
+      {
+        "codigo": "179",
+        "nombre": "BODEGA ALAMOS",
+        "direccion": "AC 26 # 100-24"
+      },
+      {
+        "codigo": "119",
+        "nombre": "CEO",
+        "direccion": "DIAGONAL 25G N° 95ª-85"
+      },
+      {
+        "codigo": "120",
+        "nombre": "CAV",
+        "direccion": "AV CALLE 26 # 59 - 15"
+      },
+      {
+        "codigo": "119",
+        "nombre": "CEO",
+        "direccion": "DIAGONAL 25G # 95 A - 85"
+      },
+      {
+        "codigo": "121",
+        "nombre": "TAMPA CARGO OFICINAS",
+        "direccion": "AVENIDA EL DORADO NO. 106-81 CSU-C"
+      },
+      {
+        "codigo": "122",
+        "nombre": "TAMPA CARGA BODEGAS",
+        "direccion": "AVENIDA EL DORADO NO. 106-81 CSU-C"
+      },
+      {
+        "codigo": "124",
+        "nombre": "DEPRISA HUB ECO 6",
+        "direccion": "AV. EL DORADO # 116 – 87 TC1"
+      },
+      {
+        "codigo": "125",
+        "nombre": "DEPRISA CARGA ECO 1",
+        "direccion": "AV. EL DORADO NO.  # 116 – 87 TC1"
+      },
+      {
+        "codigo": "128",
+        "nombre": "AVIANCA - SERVICIO  A BORDO",
+        "direccion": "AEROPUERTO EL DORADO - NUEVO TERMINAL DE CARGA"
+      },
+      {
+        "codigo": "159",
+        "nombre": "AEROPUERTO INTERNACIONAL EL DORADO",
+        "direccion": "AEROPUERTO INTERNACIONAL EL DORADO LUIS CARLOS GALÁN SARMIENTO"
+      },
+      {
+        "codigo": "164",
+        "nombre": "SALA VIP INTERNACIONAL",
+        "direccion": "AEROPUERTO INTERNACIONAL EL DORADO ,MUELLE INTERNACIONAL"
+      },
+      {
+        "codigo": "159",
+        "nombre": "AEROPUERTO INTERNACIONAL EL DORADO",
+        "direccion": "AVENIDA CALLE 26 · 103-08 ENTRADA 1 - INTERIOR 1 - TASB"
+      },
+      {
+        "codigo": "181",
+        "nombre": "CAE",
+        "direccion": "DIAGONAL 25G N° 95ª-85"
+      },
+      {
+        "codigo": "196",
+        "nombre": "GUARDERIA (DAY CARE)",
+        "direccion": "AEROPUERTO EL DORADO ZONA NACIONAL"
+      },
+      {
+        "codigo": "194",
+        "nombre": "EDIFICIO EMA",
+        "direccion": "AEROPUERTO EL DORADO"
+      },
+      {
+        "codigo": "159",
+        "nombre": "AEROPUERTO INTERNACIONAL EL DORADO",
+        "direccion": "AEROPUERTO INTERNACIONAL EL DORADO LUIS CARLOS GALAN SARMIENTO"
+      },
+      {
+        "codigo": "159",
+        "nombre": "AEROPUERTO INTERNACIONAL EL DORADO",
+        "direccion": "AEROPUERTO EL DORADO - PLATAFORMA POSICION ECO"
+      },
+      {
+        "codigo": "120",
+        "nombre": "CAV",
+        "direccion": "AV CALLE 26 # 59 -15"
+      },
+      {
+        "codigo": "195",
+        "nombre": "LOTE ESCRITORIO",
+        "direccion": "AEROPUERTO EL DORADO"
+      },
+      {
+        "codigo": "198",
+        "nombre": "LOTE B12",
+        "direccion": "AC 26 # 103 - 22 IN6"
+      },
+      {
+        "codigo": "199",
+        "nombre": "CARPA ALMACEN DE MATERIALES",
+        "direccion": "AEROPUERTO EL DORADO - GOLFO"
+      },
+      {
+        "codigo": "124",
+        "nombre": "DEPRISA HUB ECO 6",
+        "direccion": "AV EL DORADO # 116-87 TC 1"
+      },
+      {
+        "codigo": "200",
+        "nombre": "COUNTER INSIGNIA",
+        "direccion": "AEROPUERTO EL DORADO - ZONA NACIONAL AREA PUBLICA"
+      },
+      {
+        "codigo": "201",
+        "nombre": "DEPRISA MONUMENTOS",
+        "direccion": "AC 26 # 100 - 24"
+      }
+    ]
+  },
+  {
+    "codigo": "39",
+    "nit": "830073395",
+    "nombre": "CLEAN SHESTER DE COLOMBIA LTDA",
+    "sedes": [
+      {
+        "codigo": "1",
+        "nombre": "PRINCIPAL",
+        "direccion": "CALLE 93 N. 58 - 24"
+      }
+    ]
+  },
+  {
+    "codigo": "55",
+    "nit": "860402847",
+    "nombre": "CORPORACION COLEGIO LOS NOGALES",
+    "sedes": [
+      {
+        "codigo": "1",
+        "nombre": "PRINCIPAL",
+        "direccion": "CALLE 202 Nº 56-50"
+      }
+    ]
+  },
+  {
+    "codigo": "76",
+    "nit": "900051745",
+    "nombre": "FIX CONSTRUCCIONES S.A.S",
+    "sedes": [
+      {
+        "codigo": "1",
+        "nombre": "PRINCIPAL",
+        "direccion": "AV CALLE 127 NO 7A-47"
+      }
+    ]
+  },
+  {
+    "codigo": "126",
+    "nit": "800136835",
+    "nombre": "SODEXO SAS",
+    "sedes": [
+      {
+        "codigo": "1",
+        "nombre": "CIRION - NODO AMERICAS",
+        "direccion": "CARRERA 67A NO. 4 G -55"
+      },
+      {
+        "codigo": "2",
+        "nombre": "CIRION - NORTE - COL XV",
+        "direccion": "CARRERA 68 # 169A - 73 / CALLE 169 B NO. 68-31"
+      },
+      {
+        "codigo": "3",
+        "nombre": "CIRION - SUBA",
+        "direccion": "DIG. 126 NO. 67-19(ANT.) AV.CALLE 127 NO. 87-51 INT1"
+      },
+      {
+        "codigo": "5",
+        "nombre": "CIRION  -CENTRO COMERCIAL SANTA FE",
+        "direccion": "TORRE EMPRESARIAL PISO 4 OFI 401, 412 Y 501 \r\nCALLE 185 # 45 – 03"
+      },
+      {
+        "codigo": "4",
+        "nombre": "CIRION - SUBACHOQUE",
+        "direccion": "AUTOPISTA MEDELLIN CALLE 80 VIA SUBACHOQUE"
+      }
+    ]
+  },
+  {
+    "codigo": "127",
+    "nit": "800238326",
+    "nombre": "LIMOR DE COLOMBIA S.A",
+    "sedes": [
+      {
+        "codigo": "1",
+        "nombre": "PRINCIPAL",
+        "direccion": "VÍA SOACHA SIBATÉ 300 MTS, DESPUÉS DEL DESVÍO"
+      }
+    ]
+  },
+  {
+    "codigo": "356",
+    "nit": "901042849",
+    "nombre": "DUFRY COLOMBIA S.A.S",
+    "sedes": [
+      {
+        "codigo": "14",
+        "nombre": "LLEGADAS INTERNACIONALES",
+        "direccion": "AEROPUERTO EL DORADO - ZONA INTERNACIONAL LLEGADAS"
+      },
+      {
+        "codigo": "1",
+        "nombre": "BODEGA A NORTE",
+        "direccion": "AEROPUERTO INT EL DORADO LOCAL: 1-18-10-BO, 1-18-11-BO, 1-18-12-BO, 1-18-13-BO"
+      },
+      {
+        "codigo": "2",
+        "nombre": "BODEGA C NORTE",
+        "direccion": "AEROPUERTO INT EL DORADO LOCAL: 1-17-03-BO"
+      },
+      {
+        "codigo": "3",
+        "nombre": "BODEGA B NORTE",
+        "direccion": "AEROPUERTO INT EL DORADO LOCAL: 1-17-04-BO, 1-17-05-BO"
+      },
+      {
+        "codigo": "4",
+        "nombre": "MAIN SHOP DUFRY",
+        "direccion": "AEROPUERTO INT EL DORADO - ZONA INTER LOCAL GAA2129A-AREA2"
+      },
+      {
+        "codigo": "5",
+        "nombre": "HUDSON 1 DUFRY",
+        "direccion": "AEROPUERTO INT EL DORADO - ZONA INTER - LOCAL GAA21270 NIVEL +8,70"
+      },
+      {
+        "codigo": "6",
+        "nombre": "HUDSON 2",
+        "direccion": "AEROPUERTO INT EL DORADO - ZONA INTER LOCAL: 2-17-5 DF"
+      },
+      {
+        "codigo": "7",
+        "nombre": "NORTHMALL DUFRY",
+        "direccion": "AEROPUERTO INT EL DORADO - ZONA INTER - NIVEL  +8,70 LOCAL: 2-18-09 - 2-18-10 - 2-18-11"
+      },
+      {
+        "codigo": "8",
+        "nombre": "ESPIGÓN SUR BODEGA PPAL DUFRY",
+        "direccion": "AEROPUERTO EL DORADO - PLATAFORMA - LOCAL: P21-22-23"
+      },
+      {
+        "codigo": "9",
+        "nombre": "DUFRY SHOPPING",
+        "direccion": "AEROPUERTO EL DORADO - ZONA NAL - LOCAL 2-25-O8B-RT- NIVEL +8,70 TERMINAL 2 SALIDAS NACIONALES"
+      },
+      {
+        "codigo": "10",
+        "nombre": "ESPIGÓN SUR BODEGA NACIONAL",
+        "direccion": "AEROPUERTO EL DORADO - LOCAL: 1-25-14-BO, 1-25-15-BO, 1-25-16-BO, 1-25-17-BO, 1-25-18-BO, 1-25-19-BO"
+      },
+      {
+        "codigo": "11",
+        "nombre": "ESPIGÓN SUR LOCKER Y CAFETERIAS",
+        "direccion": "AEROPUERTO EL DORADO- CTO MONITOREO/LOCKERS DUFRY\r\nLOCAL: M-25-32-OF / M-25-33-OF / M-25-34-OF"
+      },
+      {
+        "codigo": "12",
+        "nombre": "OFICINAS DUFRY",
+        "direccion": "AEROPUERTO EL DORADO - LOCAL: M-25-30-OF / M-25-35-OF / M-25-28-OF / M-25-29-OF"
+      },
+      {
+        "codigo": "13",
+        "nombre": "FASHION NORTE",
+        "direccion": "AEROPUERTO EL DORADO - ZONA NORTE INTERNACIONAL"
+      },
+      {
+        "codigo": "15",
+        "nombre": "NACIONAL NORTE",
+        "direccion": "AEROPUERTO EL DORADO - ZONA NACIONAL LOCALGDA2092A, NIVEL8,70"
+      },
+      {
+        "codigo": "16",
+        "nombre": "BOGOTA DUFRY SHOPPING PUENTE AEREO",
+        "direccion": "AEROPUERTO EL DORADO, TERMINAL 2 PUENTE AEREO"
+      }
+    ]
+  },
+  {
+    "codigo": "383",
+    "nit": "900801689",
+    "nombre": "ATTON BOGOTA 93 S.A.S.",
+    "sedes": [
+      {
+        "codigo": "1",
+        "nombre": "PRINCIPAL",
+        "direccion": "CALLE 93 # 12 - 41"
+      }
+    ]
+  },
+  {
+    "codigo": "401",
+    "nit": "901574980",
+    "nombre": "EVERISE COLOMBIA SAS",
+    "sedes": [
+      {
+        "codigo": "1",
+        "nombre": "PRINCIPAL",
+        "direccion": "CALLE 25 G # 73 B - 90 PISO 11 (EDIFICIO CENTRAL POINT)"
+      },
+      {
+        "codigo": "3",
+        "nombre": "PISO 10",
+        "direccion": "CALLE 25 G # 73 B - 90 PISO 10"
+      }
+    ]
+  },
+  {
+    "codigo": "403",
+    "nit": "860061284",
+    "nombre": "GRUPO AR S A S",
+    "sedes": [
+      {
+        "codigo": "1",
+        "nombre": "PRINCIPAL",
+        "direccion": "AVENIDA CRA 60. Nº 22-99"
+      }
+    ]
+  },
+  {
+    "codigo": "416",
+    "nit": "800230447",
+    "nombre": "SODEXO  SAS",
+    "sedes": [
+      {
+        "codigo": "2",
+        "nombre": "TECNOQUIMICAS SEDE PALOQUEMAO",
+        "direccion": "CARRERA 34 # 18- 31"
+      }
+    ]
+  },
+  {
+    "codigo": "417",
+    "nit": "800161656",
+    "nombre": "MODANOVA S.A.S",
+    "sedes": [
+      {
+        "codigo": "7",
+        "nombre": "PLANTA DE PRODUCCION",
+        "direccion": "KILOMETRO 16 VIA SIBATE"
+      }
+    ]
+  },
+  {
+    "codigo": "442",
+    "nit": "830133068",
+    "nombre": "GENMED S.A.S",
+    "sedes": [
+      {
+        "codigo": "1",
+        "nombre": "PENSILVANIA",
+        "direccion": "CALLE 8A NO 32 A 18"
+      }
+    ]
+  },
+  {
+    "codigo": "443",
+    "nit": "8600534777",
+    "nombre": "RATAR S.A.S.",
+    "sedes": [
+      {
+        "codigo": "1",
+        "nombre": "ÁLAMOS",
+        "direccion": "TRANSVERSAL 93 NO 53-48 INTERIOR 18-65"
+      },
+      {
+        "codigo": "2",
+        "nombre": "FONTIBÓN",
+        "direccion": "CARRERA 127 #15B-20 INT 6 BODEGA 4"
+      }
+    ]
+  }
+]
