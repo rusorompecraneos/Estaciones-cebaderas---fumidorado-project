@@ -5,7 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title><%= title %></title>
   <link rel="stylesheet" href="/css/styles.css"/>
+
+  <%# IMPORTANTE: configurar workerSrc ANTES de cargar pdf.min.js %>
+  <script>
+    window.pdfjsWorkerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    // Configurar worker inmediatamente después de cargar la librería
+    if (typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = window.pdfjsWorkerSrc;
+    }
+  </script>
+
   <style>
     /* ── Base ── */
     body { background:var(--color-bg); color:var(--color-text); font-family:var(--font-body); }
@@ -112,21 +124,6 @@
     }
     #rpt-canvas { width:100%; height:auto; display:block; }
 
-    .rpt-punto {
-      position:absolute;
-      width:26px; height:26px; border-radius:50%;
-      border:2px solid rgba(255,255,255,.9);
-      display:flex; align-items:center; justify-content:center;
-      font-size:10px; font-weight:700; color:white;
-      transform:translate(-50%,-50%);
-      box-shadow:0 2px 6px rgba(0,0,0,.4);
-      pointer-events:none;
-    }
-    .rpt-punto.sin_consumo { background:#3B9B5C; }
-    .rpt-punto.con_consumo { background:#D94F4F; }
-    .rpt-punto.captura     { background:#E09B35; }
-    .rpt-punto.pendiente   { background:#555450; }
-
     /* Leyenda del mapa */
     .mapa-leyenda {
       display:flex; gap:var(--space-5); flex-wrap:wrap;
@@ -171,9 +168,7 @@
     .consumo-badge.captura     { background:rgba(224,155,53,.15);   color:#E09B35; }
     .consumo-badge.pendiente   { background:var(--color-surface-3); color:var(--color-text-faint); }
 
-    .repone-badge {
-      font-size:var(--text-xs); font-weight:500;
-    }
+    .repone-badge { font-size:var(--text-xs); font-weight:500; }
     .repone-badge.si { color:#3B9B5C; }
     .repone-badge.no { color:#D94F4F; }
 
@@ -195,30 +190,37 @@
       padding-top:var(--space-4); border-top:1px solid var(--color-border);
     }
 
-    /* ── PDF loading ── */
-    .pdf-loading { padding:var(--space-8); text-align:center; color:var(--color-text-muted); font-size:var(--text-sm); }
-    .pdf-spinner { width:28px; height:28px; border:3px solid var(--color-border); border-top-color:var(--color-gold); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto var(--space-3); }
+    /* ── PDF loading / error ── */
+    .pdf-loading {
+      padding:var(--space-8); text-align:center;
+      color:var(--color-text-muted); font-size:var(--text-sm);
+    }
+    .pdf-spinner {
+      width:28px; height:28px; border:3px solid var(--color-border);
+      border-top-color:var(--color-gold); border-radius:50%;
+      animation:spin .8s linear infinite; margin:0 auto var(--space-3);
+    }
+    .pdf-error {
+      padding:var(--space-6); text-align:center;
+      color:var(--color-error); font-size:var(--text-sm); display:none;
+    }
     @keyframes spin { to { transform:rotate(360deg); } }
 
     /* ── Print ── */
     @media print {
-      .rpt-topbar   { display:none !important; }
-      body          { background:#fff !important; color:#111 !important; }
-      .rpt-page     { padding:20px !important; max-width:100% !important; }
+      .rpt-topbar { display:none !important; }
+      body        { background:#fff !important; color:#111 !important; }
+      .rpt-page   { padding:20px !important; max-width:100% !important; }
       .rpt-stat, .rpt-info-field, .rpt-section-title,
       .rpt-header, .rpt-table-wrap, .mapa-wrap, .mapa-leyenda,
-      .firmas-grid, .rpt-footer-bar { color:#111 !important; background:#fff !important; border-color:#ddd !important; }
+      .firmas-grid, .rpt-footer-bar {
+        color:#111 !important; background:#fff !important; border-color:#ddd !important;
+      }
       .rpt-stat__label, .rpt-info-field__label, .td-muted { color:#555 !important; }
       .rpt-header__date { color:#c9962a !important; }
-
-      /* Forzar que los puntos se impriman con color */
-      .rpt-punto { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
-      .rpt-punto.sin_consumo { background:#3B9B5C !important; }
-      .rpt-punto.con_consumo { background:#D94F4F !important; }
-      .rpt-punto.captura     { background:#E09B35 !important; }
-      .rpt-punto.pendiente   { background:#555450 !important; }
       .mapa-wrap { position:relative !important; }
-      #rpt-canvas-print { width:100% !important; height:auto !important; }
+      #rpt-canvas        { display:none !important; }
+      #rpt-canvas-print  { width:100% !important; height:auto !important; display:block !important; }
     }
 
     @media(max-width:768px) {
@@ -228,11 +230,22 @@
       .rpt-page      { padding:var(--space-4); }
       .rpt-topbar    { padding:var(--space-4); }
     }
+    @media print {
+      #rpt-canvas {
+      display: none !important;
+  }
+
+  #rpt-canvas-print {
+    display: block !important;
+    width: 100%;
+    height: auto;
+  }
+  
+}
   </style>
 </head>
 <body>
 
-<!-- Topbar — solo visible en pantalla -->
 <header class="rpt-topbar">
   <div class="rpt-topbar__left">
     <a href="<%= backUrl %>" class="rpt-topbar__back">
@@ -260,9 +273,6 @@
   </div>
 </header>
 
-<!-- ══════════════════════════════════════════
-     REPORTE (se imprime completo)
-══════════════════════════════════════════ -->
 <div class="rpt-page">
 
   <!-- Encabezado de marca -->
@@ -286,7 +296,8 @@
   <div>
     <div class="rpt-section-title">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+        <rect x="2" y="7" width="20" height="14" rx="2"/>
+        <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
       </svg>
       Información del servicio
     </div>
@@ -324,12 +335,12 @@
   <div>
     <div class="rpt-section-title">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
         <line x1="6"  y1="20" x2="6"  y2="14"/>
       </svg>
       Resumen de consumo
     </div>
-
     <div class="rpt-stats">
       <div class="rpt-stat rpt-stat--total">
         <div class="rpt-stat__num"><%= stats.total %></div>
@@ -348,8 +359,6 @@
         <div class="rpt-stat__label">Capturas</div>
       </div>
     </div>
-
-    <!-- Barra proporcional -->
     <% if (stats.total > 0) { %>
       <div class="rpt-progress" style="margin-top:var(--space-4);">
         <div class="rpt-progress__label">
@@ -381,9 +390,11 @@
           <div class="pdf-spinner"></div>
           Cargando diagrama...
         </div>
-        <canvas id="rpt-canvas" style="display:none;"></canvas>
+        <div class="pdf-error" id="pdf-error">
+          No se pudo cargar el diagrama. <a href="#" onclick="renderMapa(); return false;">Reintentar</a>
+        </div>
+        <canvas id="rpt-canvas"></canvas>
       </div>
-
       <div class="mapa-leyenda" style="margin-top:var(--space-3);">
         <div class="mapa-leyenda__item"><div class="mapa-leyenda__dot" style="background:#3B9B5C;"></div>Sin consumo</div>
         <div class="mapa-leyenda__item"><div class="mapa-leyenda__dot" style="background:#D94F4F;"></div>Con consumo</div>
@@ -401,7 +412,8 @@
   <div>
     <div class="rpt-section-title">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+        <line x1="8" y1="6" x2="21" y2="6"/>
+        <line x1="8" y1="12" x2="21" y2="12"/>
         <line x1="8" y1="18" x2="21" y2="18"/>
         <line x1="3" y1="6"  x2="3.01" y2="6"/>
         <line x1="3" y1="12" x2="3.01" y2="12"/>
@@ -409,17 +421,12 @@
       </svg>
       Detalle de estaciones cebaderas
     </div>
-
     <div class="rpt-table-wrap">
       <table>
         <thead>
           <tr>
-            <th>#</th>
-            <th>Tipo</th>
-            <th>Consumo</th>
-            <th>¿Repone?</th>
-            <th>Novedad</th>
-            <th>Observaciones</th>
+            <th>#</th><th>Tipo</th><th>Consumo</th>
+            <th>¿Repone?</th><th>Novedad</th><th>Observaciones</th>
           </tr>
         </thead>
         <tbody>
@@ -472,23 +479,18 @@
     </div>
   </div>
 
-  <!-- Footer del reporte -->
   <div class="rpt-footer-bar">
-    Código: SGC-Fo8501 · Versión Vigente: 2 · Aprobado por: R.C · 
+    Código: SGC-Fo8501 · Versión Vigente: 2 · Aprobado por: R.C ·
     Generado el <%= new Date().toLocaleDateString('es-CO', {day:'2-digit', month:'long', year:'numeric'}) %>
   </div>
 
-</div><!-- /rpt-page -->
+</div>
 
 <% if (diagrama) { %>
 <script>
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-const PDF_URL  = '/admin/diagramas/<%= diagrama.id %>/pdf';
-const PUNTOS   = <%- JSON.stringify(puntos) %>;
-
-// Estado de consumo por número de estación
+// ── Datos del servidor ────────────────────────────────────────────────────────
+const PDF_URL = '/admin/diagramas/<%= diagrama.id %>/pdf';
+const PUNTOS  = <%- JSON.stringify(puntos) %>;
 const CONSUMO_MAP = <%- JSON.stringify(
   estaciones.reduce((acc, e) => {
     acc[e.numero] = e.consumo || 'pendiente';
@@ -496,47 +498,32 @@ const CONSUMO_MAP = <%- JSON.stringify(
   }, {})
 ) %>;
 
-// ── Colores por estado de consumo ────────────────────────────────────────────
 const CONSUMO_COLORS = {
-  sin_consumo: { r: 59,  g: 155, b: 92,  label: 'Sin consumo'  },
-  con_consumo: { r: 217, g: 79,  b: 79,  label: 'Con consumo'  },
-  captura:     { r: 224, g: 155, b: 53,  label: 'Captura'      },
-  pendiente:   { r: 85,  g: 84,  b: 80,  label: 'Sin revisar'  },
+  sin_consumo: { r: 59,  g: 155, b: 92  },
+  con_consumo: { r: 217, g: 79,  b: 79  },
+  captura:     { r: 224, g: 155, b: 53  },
+  pendiente:   { r: 85,  g: 84,  b: 80  },
 };
 
-async function renderMapa() {
-  const canvas   = document.getElementById('rpt-canvas');
-  const ctx      = canvas.getContext('2d');
-  const mapaWrap = document.getElementById('mapa-wrap');
-
-  // 1. Renderizar el PDF
-  const pdf      = await pdfjsLib.getDocument(PDF_URL).promise;
-  const page     = await pdf.getPage(1);
-  const viewport = page.getViewport({ scale: 1.5 });
-
-  canvas.width  = viewport.width;
-  canvas.height = viewport.height;
-  await page.render({ canvasContext: ctx, viewport }).promise;
-
-  // 2. Dibujar capa de heatmap encima del PDF
+// ── Dibujar heatmap + puntos sobre el canvas ──────────────────────────────────
+function dibujarHeatmap(canvas, ctx) {
   const W = canvas.width;
   const H = canvas.height;
-
-  // Radio del gradiente en píxeles (proporcional al canvas)
   const baseRadius = Math.min(W, H) * 0.09;
+  const DOT_R      = Math.min(W, H) * 0.018;
+  const FONT_SZ    = Math.max(9, DOT_R * 1.1);
 
+  // Capa de gradientes
   PUNTOS.forEach(p => {
-    const consumo = CONSUMO_MAP[p.numero] || 'pendiente';
-    const col     = CONSUMO_COLORS[consumo];
-    const cx      = (p.x_pct / 100) * W;
-    const cy      = (p.y_pct / 100) * H;
+    const col = CONSUMO_COLORS[CONSUMO_MAP[p.numero] || 'pendiente'];
+    const cx  = (p.x_pct / 100) * W;
+    const cy  = (p.y_pct / 100) * H;
 
-    // Radial gradient: centro opaco, borde transparente
     const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, baseRadius);
-    grad.addColorStop(0,    `rgba(${col.r}, ${col.g}, ${col.b}, 0.70)`);
-    grad.addColorStop(0.35, `rgba(${col.r}, ${col.g}, ${col.b}, 0.45)`);
-    grad.addColorStop(0.70, `rgba(${col.r}, ${col.g}, ${col.b}, 0.18)`);
-    grad.addColorStop(1,    `rgba(${col.r}, ${col.g}, ${col.b}, 0.00)`);
+    grad.addColorStop(0,    `rgba(${col.r},${col.g},${col.b},0.70)`);
+    grad.addColorStop(0.35, `rgba(${col.r},${col.g},${col.b},0.45)`);
+    grad.addColorStop(0.70, `rgba(${col.r},${col.g},${col.b},0.18)`);
+    grad.addColorStop(1,    `rgba(${col.r},${col.g},${col.b},0.00)`);
 
     ctx.beginPath();
     ctx.arc(cx, cy, baseRadius, 0, Math.PI * 2);
@@ -544,56 +531,104 @@ async function renderMapa() {
     ctx.fill();
   });
 
-  // 3. Dibujar círculos con número encima del heatmap
-  const DOT_R    = Math.min(W, H) * 0.018;
-  const FONT_SZ  = Math.max(9, DOT_R * 1.1);
-
+  // Capa de círculos numerados
   PUNTOS.forEach(p => {
-    const consumo = CONSUMO_MAP[p.numero] || 'pendiente';
-    const col     = CONSUMO_COLORS[consumo];
-    const cx      = (p.x_pct / 100) * W;
-    const cy      = (p.y_pct / 100) * H;
+    const col = CONSUMO_COLORS[CONSUMO_MAP[p.numero] || 'pendiente'];
+    const cx  = (p.x_pct / 100) * W;
+    const cy  = (p.y_pct / 100) * H;
 
-    // Sombra suave
-    ctx.shadowColor   = 'rgba(0,0,0,0.35)';
-    ctx.shadowBlur    = 4;
-
-    // Círculo sólido
+    ctx.shadowColor  = 'rgba(0,0,0,0.35)';
+    ctx.shadowBlur   = 4;
     ctx.beginPath();
     ctx.arc(cx, cy, DOT_R, 0, Math.PI * 2);
-    ctx.fillStyle = `rgb(${col.r}, ${col.g}, ${col.b})`;
+    ctx.fillStyle = `rgb(${col.r},${col.g},${col.b})`;
     ctx.fill();
 
-    // Borde blanco
-    ctx.shadowBlur    = 0;
-    ctx.strokeStyle   = 'rgba(255,255,255,0.9)';
-    ctx.lineWidth     = 1.5;
+    ctx.shadowBlur   = 0;
+    ctx.strokeStyle  = 'rgba(255,255,255,0.9)';
+    ctx.lineWidth    = 1.5;
     ctx.stroke();
 
-    // Número
-    ctx.fillStyle   = '#ffffff';
-    ctx.font        = `bold ${FONT_SZ}px sans-serif`;
-    ctx.textAlign   = 'center';
+    ctx.fillStyle    = '#ffffff';
+    ctx.font         = `bold ${FONT_SZ}px sans-serif`;
+    ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(p.numero, cx, cy);
   });
-
-  // 4. Mostrar canvas
-  document.getElementById('pdf-loading').style.display = 'none';
-  canvas.style.display = 'block';
 }
 
-renderMapa();
+// ── Renderizar PDF ────────────────────────────────────────────────────────────
+async function renderMapa() {
+  const loadingEl = document.getElementById('pdf-loading');
+  const errorEl   = document.getElementById('pdf-error');
+  const canvas    = document.getElementById('rpt-canvas');
+  const ctx       = canvas.getContext('2d');
 
-// ── Fix impresión: convertir canvas a imagen antes de imprimir ──────────────
+  // Resetear estado visual
+  loadingEl.style.display = 'block';
+  errorEl.style.display   = 'none';
+  canvas.style.display    = 'none';
+
+  try {
+    // Cargar PDF con timeout de 15 segundos
+    const loadTask = pdfjsLib.getDocument({
+      url:              PDF_URL,
+      // Deshabilitar el worker si falla — fallback seguro
+      disableWorker:    false,
+      // Reintentar la conexión con el worker automáticamente
+      maxImageSize:     -1,
+    });
+
+    const pdf      = await Promise.race([
+      loadTask.promise,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout al cargar el PDF')), 15000)
+      ),
+    ]);
+
+    const page     = await pdf.getPage(1);
+    const viewport = page.getViewport({ scale: 1.5 });
+
+    canvas.width  = viewport.width;
+    canvas.height = viewport.height;
+
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    dibujarHeatmap(canvas, ctx);
+
+    loadingEl.style.display = 'none';
+    canvas.style.display    = 'block';
+
+  } catch (err) {
+    console.error('[Reporte] Error cargando PDF:', err.message);
+    loadingEl.style.display = 'none';
+    errorEl.style.display   = 'block';
+  }
+}
+
+// ── Esperar a que el DOM esté completamente cargado ───────────────────────────
+// Este era el problema principal: renderMapa() se llamaba antes de que
+// el canvas estuviera disponible en el DOM cuando la página venía de
+// un estado de caché parcial.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderMapa);
+} else {
+  // DOM ya listo (caso normal en navegación directa)
+  renderMapa();
+}
+
+// ── Fix impresión: canvas → imagen antes de imprimir ─────────────────────────
 window.addEventListener('beforeprint', function () {
   const canvas = document.getElementById('rpt-canvas');
   if (!canvas || canvas.style.display === 'none') return;
-  const img = document.createElement('img');
-  img.id    = 'rpt-canvas-print';
-  img.src   = canvas.toDataURL('image/png');
-  img.style.cssText = 'width:100%;display:block;';
-  canvas.style.display = 'none';
+
+  const existing = document.getElementById('rpt-canvas-print');
+  if (existing) existing.remove();
+
+  const img     = document.createElement('img');
+  img.id        = 'rpt-canvas-print';
+  img.src       = canvas.toDataURL('image/png');
+  img.style.cssText = 'width:100%;height:auto;display:block;';
   canvas.parentNode.insertBefore(img, canvas);
 });
 
