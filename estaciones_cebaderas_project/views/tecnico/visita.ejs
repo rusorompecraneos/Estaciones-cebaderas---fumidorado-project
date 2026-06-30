@@ -345,6 +345,31 @@
           &nbsp;·&nbsp;
           <%= new Date().toLocaleDateString('es-CO', { day:'2-digit', month:'long', year:'numeric' }) %>
         </div>
+
+        <div class="os-field" style="margin-top: var(--space-2); display:flex; align-items:center; gap: var(--space-2);">
+          <label for="os-input" style="font-weight:600; font-size: 0.85rem;">N° OS:</label>
+          <input
+            type="text"
+            id="os-input"
+            class="form-control"
+            style="max-width: 180px;"
+            placeholder="Número de OS"
+            value="<%= visita.os || '' %>"
+          />
+          <span class="save-indicator" id="os-save-indicator"></span>
+
+          <label for="fecha-ejecucion-input" style="font-weight:600; font-size: 0.85rem; margin-left: var(--space-3);">
+            Fecha ejecución:
+          </label>
+          <input
+            type="date"
+            id="fecha-ejecucion-input"
+            class="form-control"
+            style="max-width: 180px;"
+            value="<%= visita.fecha_ejecucion ? new Date(visita.fecha_ejecucion).toISOString().slice(0,10) : '' %>"
+          />
+          <span class="save-indicator" id="fecha-ejecucion-save-indicator"></span>
+        </div>
       </div>
       <div class="leyenda">
         <div class="leyenda__item"><div class="leyenda__dot" style="background:#3B9B5C;"></div>Sin consumo</div>
@@ -526,7 +551,18 @@ function initCard(card) {
   // Subir foto
   const uploadInput = card.querySelector('.upload-input');
   const uploadBtn   = card.querySelector('.upload-btn');
-  uploadBtn?.addEventListener('click', () => uploadInput.click());
+  // Aplicar estado actual del OS a esta card
+  if (uploadBtn) {
+    const osActual = (document.getElementById('os-input')?.value || '').trim();
+    uploadBtn.disabled      = !osActual;
+    uploadBtn.title         = osActual ? 'Agregar foto' : 'Ingresa el número de OS antes de subir fotos';
+    uploadBtn.style.opacity = osActual ? '1' : '0.4';
+    uploadBtn.style.cursor  = osActual ? 'pointer' : 'not-allowed';
+  }
+
+  uploadBtn?.addEventListener('click', () => {
+    if (!uploadBtn.disabled) uploadInput.click();
+  });
 
   uploadInput?.addEventListener('change', async function () {
     const file = this.files[0];
@@ -608,6 +644,97 @@ document.getElementById('btn-finalizar').addEventListener('click', async functio
     this.textContent = 'Finalizar visita';
   }
 });
+
+// ── Guardar Número de OS + control de cámara ──────────────────────────────────
+const osInput         = document.getElementById('os-input');
+const osSaveIndicator = document.getElementById('os-save-indicator');
+let osSaveTimer;
+
+function setUploadBtnsEnabled(enabled) {
+  document.querySelectorAll('.upload-btn').forEach(btn => {
+    btn.disabled = !enabled;
+    btn.title    = enabled
+      ? 'Agregar foto'
+      : 'Ingresa el número de OS antes de subir fotos';
+    btn.style.opacity = enabled ? '1' : '0.4';
+    btn.style.cursor  = enabled ? 'pointer' : 'not-allowed';
+  });
+}
+
+// Estado inicial: bloquear si no hay OS
+setUploadBtnsEnabled('<%= (visita.os || "").trim() %>' !== '');
+
+osInput.addEventListener('input', function () {
+  // Si el técnico borra el OS, bloquear inmediatamente
+  if (!osInput.value.trim()) {
+    setUploadBtnsEnabled(false);
+  }
+
+  clearTimeout(osSaveTimer);
+  osSaveIndicator.className   = 'save-indicator saving visible';
+  osSaveIndicator.textContent = 'Guardando...';
+
+  osSaveTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`/tecnico/visita/${VISITA_ID}/os`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ os: osInput.value }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        osSaveIndicator.className   = 'save-indicator saved visible';
+        osSaveIndicator.textContent = '✓ Guardado';
+        // Habilitar cámara solo si hay valor real
+        setUploadBtnsEnabled(osInput.value.trim() !== '');
+      } else {
+        osSaveIndicator.className   = 'save-indicator visible';
+        osSaveIndicator.textContent = 'Error al guardar';
+      }
+    } catch (err) {
+      osSaveIndicator.className   = 'save-indicator visible';
+      osSaveIndicator.textContent = 'Error de conexión';
+    }
+    setTimeout(() => osSaveIndicator.classList.remove('visible'), 2000);
+  }, 800);
+});
+
+
+// ── Guardar Fecha de ejecución ────────────────────────────────────────────────
+const fechaEjecucionInput = document.getElementById('fecha-ejecucion-input');
+const fechaEjecucionSaveIndicator = document.getElementById('fecha-ejecucion-save-indicator');
+let fechaEjecucionSaveTimer;
+
+fechaEjecucionInput.addEventListener('change', function () {
+  clearTimeout(fechaEjecucionSaveTimer);
+  fechaEjecucionSaveIndicator.className = 'save-indicator saving visible';
+  fechaEjecucionSaveIndicator.textContent = 'Guardando...';
+
+  fechaEjecucionSaveTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`/tecnico/visita/${VISITA_ID}/fecha-ejecucion`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ fechaEjecucion: fechaEjecucionInput.value }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        fechaEjecucionSaveIndicator.className   = 'save-indicator saved visible';
+        fechaEjecucionSaveIndicator.textContent = '✓ Guardado';
+      } else {
+        fechaEjecucionSaveIndicator.className   = 'save-indicator visible';
+        fechaEjecucionSaveIndicator.textContent = 'Error al guardar';
+      }
+    } catch (err) {
+      fechaEjecucionSaveIndicator.className   = 'save-indicator visible';
+      fechaEjecucionSaveIndicator.textContent = 'Error de conexión';
+    }
+    setTimeout(() => fechaEjecucionSaveIndicator.classList.remove('visible'), 2000);
+  }, 800);
+});
+
+
+
 </script>
 
 </body>

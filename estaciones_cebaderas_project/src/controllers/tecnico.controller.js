@@ -155,20 +155,19 @@ export async function subirFoto(req, res) {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'No se recibió ninguna foto.' });
 
-    const fotoId = await guardarFoto({
-      estacionId: req.params.id,
-      filename: req.file.filename,
-      originalName: req.file.originalname,
-      mimetype: req.file.mimetype,
-      size: req.file.size,
-});
+    const os      = req.visitaOS;                       // inyectado por requireOS
+    const relPath = `${os}/${req.file.filename}`;       // lo que guardamos en BD
+    const url     = `/fotos-servicio/${relPath}`;       // URL pública protegida
 
-    return res.json({
-      success:  true,
-      fotoId, 
-      filename: req.file.filename,
-      url:      `/uploads/estaciones/${req.file.filename}`,
+    const fotoId = await guardarFoto({
+      estacionId:   req.params.id,
+      filename:     relPath,                            // "OS/est-xxxxx.jpg"
+      originalName: req.file.originalname,
+      mimetype:     req.file.mimetype,
+      size:         req.file.size,
     });
+
+    return res.json({ success: true, fotoId, filename: relPath, url });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
@@ -179,7 +178,8 @@ export async function borrarFoto(req, res) {
   try {
     const foto = await eliminarFoto(req.params.id);
     if (foto) {
-      const filePath = path.join(__dirname, '../../public/uploads/estaciones', foto.filename);
+      // foto.filename ya contiene "OS/est-xxxxx.jpg"
+      const filePath = path.join(process.env.FOTOS_BASE_PATH, foto.filename);
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
     return res.json({ success: true });
@@ -195,6 +195,32 @@ export async function finalizarVisita(req, res) {
     return res.json({ success: true, redirect: '/tecnico/dashboard' });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+// ── PATCH /tecnico/visita/:visitaId/os  (AJAX) ────────────────────────────────
+export async function actualizarOS(req, res) {
+  try {
+    await tecnicoService.actualizarOS({
+      id: req.params.visitaId,
+      os: req.body.os,
+    });
+    return res.json({ success: true });
+  } catch (err) {
+    return res.status(400).json({ success: false, message: err.message });
+  }
+}
+
+// ── PATCH /tecnico/visita/:visitaId/fecha-ejecucion  (AJAX) ──────────────────
+export async function actualizarFechaEjecucion(req, res) {
+  try {
+    await tecnicoService.actualizarFechaEjecucion({
+      id: req.params.visitaId,
+      fechaEjecucion: req.body.fechaEjecucion,
+    });
+    return res.json({ success: true });
+  } catch (err) {
+    return res.status(400).json({ success: false, message: err.message });
   }
 }
 

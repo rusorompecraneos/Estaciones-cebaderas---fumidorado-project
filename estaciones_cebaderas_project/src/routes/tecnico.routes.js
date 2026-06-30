@@ -5,6 +5,7 @@ import multer        from 'multer';
 import path          from 'path';
 import { fileURLToPath } from 'url';
 import { dirname }   from 'path';
+import fs            from 'fs';
 import { isAuthenticated, requireRole } from '../middlewares/authmiddleware.js';
 import {
   showDashboard,
@@ -19,18 +20,26 @@ import {
   finalizarVisita,
   showMapa,
   showMisVisitas,
+  actualizarOS, 
+  actualizarFechaEjecucion, 
 } from '../controllers/tecnico.controller.js';
 
 import { servePdf } from '../controllers/diagramas.controller.js';
 import { showReporte } from '../controllers/reportes.controller.js';
+import * as tecnicoService from '../services/tecnico.service.js'; 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = dirname(__filename);
 
 // ── Multer — subida de fotos ──────────────────────────────────────────────────
+const FOTOS_BASE = process.env.FOTOS_BASE_PATH;
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../../public/uploads/estaciones'));
+    // req.visitaOS es inyectado por el middleware requireOS que corre antes
+    const dir = path.join(FOTOS_BASE, req.visitaOS);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
   },
   filename: (req, file, cb) => {
     const ext    = path.extname(file.originalname);
@@ -47,6 +56,24 @@ const upload = multer({
     cb(null, allowed.includes(file.mimetype));
   },
 });
+
+// ── Middleware: valida OS y lo adjunta al request antes de multer ─────────────
+async function requireOS(req, res, next) {
+  try {
+    const os = await tecnicoService.getOSByEstacionId(req.params.id);
+    if (!os) {
+      return res.status(400).json({
+        success: false,
+        message: 'Debes ingresar el número de OS antes de subir fotos.',
+      });
+    }
+    req.visitaOS = os;
+    next();
+  } catch (err) {
+    console.error('[requireOS]', err);
+    return res.status(500).json({ success: false, message: 'Error verificando OS.' });
+  }
+}
 
 const router = Router();
 
@@ -69,6 +96,9 @@ router.get('/visita/:visitaId',       showVisita);
 
 // ── Finalizar visita ──────────────────────────────────────────────────────────
 router.post('/visita/:visitaId/finalizar', finalizarVisita);
+router.patch('/visita/:visitaId/os', actualizarOS);
+router.patch('/visita/:visitaId/fecha-ejecucion', actualizarFechaEjecucion);
+
 
 // ── Estaciones (AJAX) ─────────────────────────────────────────────────────────
 router.post('/visita/:visitaId/estacion', agregarEstacion);
@@ -76,7 +106,7 @@ router.patch('/estacion/:id',             actualizarEstacion);
 router.delete('/estacion/:id',            eliminarEstacion);
 
 // ── Fotos (AJAX) ──────────────────────────────────────────────────────────────
-router.post('/estacion/:id/foto',  upload.single('foto'), subirFoto);
+router.post('/estacion/:id/foto', requireOS, upload.single('foto'), subirFoto);
 router.delete('/foto/:id',                                 borrarFoto);
 
 // ── Mapa ──────────────────────────────────────────────────────────────────────

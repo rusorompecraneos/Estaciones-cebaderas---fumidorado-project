@@ -80,6 +80,37 @@ export async function finalizarVisita(visitaId) {
   );
 }
 
+export async function getOSByEstacionId(estacionId) {
+  const { rows } = await pool.query(
+    `SELECT v.os
+     FROM visitas v
+     JOIN estaciones e ON e.visita_id = v.id
+     WHERE e.id = $1
+     LIMIT 1`,
+    [estacionId]
+  );
+  return rows[0]?.os || null;
+}
+// NUMERO DE OS 
+export async function updateVisitaOS({ id, os }) {
+  await pool.query(
+    `UPDATE visitas
+     SET os = $1
+     WHERE id = $2`,
+    [os, id]
+  );
+}
+
+// FECHA DE EJECUCION
+export async function updateVisitaFechaEjecucion({ id, fechaEjecucion }) {
+  await pool.query(
+    `UPDATE visitas
+     SET fecha_ejecucion = $1
+     WHERE id = $2`,
+    [fechaEjecucion, id]
+  );
+}
+
 // ── ESTACIONES ───────────────────────────────────────────────────────────────
 
 export async function findEstacionesByVisita(visitaId) {
@@ -152,7 +183,7 @@ export async function deleteFoto(id) {
 export async function findVisitasByTecnico(tecnicoId) {
   const { rows } = await pool.query(
     `SELECT
-       v.id, v.fecha, v.hora_inicio, v.hora_fin, v.estado,
+       v.id, v.fecha, v.hora_inicio, v.hora_fin, v.estado, v.os, v.fecha_ejecucion,
        s.id AS sede_id, s.nombre AS sede_nombre, s.codigo AS sede_codigo,
        c.id AS cliente_id, c.nombre AS cliente_nombre, c.codigo AS cliente_codigo,
        (SELECT COUNT(*) FROM estaciones e WHERE e.visita_id = v.id) AS total_estaciones,
@@ -168,4 +199,6 @@ export async function findVisitasByTecnico(tecnicoId) {
     [tecnicoId]
   );
   return rows;
+
+  
 }

@@ -19,7 +19,7 @@ export async function findVisitasFinalizadas({ clienteId, sedeId } = {}) {
  
   const { rows } = await pool.query(
     `SELECT
-       v.id, v.fecha, v.hora_inicio, v.hora_fin, v.estado,
+       v.id, v.fecha, v.hora_inicio, v.hora_fin, v.estado, v.os, v.fecha_ejecucion,
        t.nombre   AS tecnico_nombre,
        s.id       AS sede_id,   s.nombre AS sede_nombre,   s.codigo AS sede_codigo,
        c.id       AS cliente_id, c.nombre AS cliente_nombre, c.codigo AS cliente_codigo,
@@ -44,7 +44,7 @@ export async function findVisitaCompleta(visitaId) {
   // Datos de la visita
   const { rows: vRows } = await pool.query(
     `SELECT
-       v.id, v.tecnico_id, v.fecha, v.hora_inicio, v.hora_fin, v.estado,
+       v.id, v.tecnico_id, v.fecha, v.hora_inicio, v.hora_fin, v.estado, v.os, v.fecha_ejecucion,
        t.nombre   AS tecnico_nombre,  t.iniciales AS tecnico_iniciales,
        s.id       AS sede_id,   s.nombre AS sede_nombre,   s.codigo AS sede_codigo,
                                 s.direccion AS sede_direccion,

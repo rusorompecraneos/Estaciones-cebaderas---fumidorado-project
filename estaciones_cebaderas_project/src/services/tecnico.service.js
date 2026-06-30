@@ -21,7 +21,7 @@ export const NOVEDADES = [
   'Sin novedad',
   'Estación en buen estado',
   'Estación cebadera rota',
-  'Estación desplazada',
+  'Estación despegada',
   'Estación sin cebo',
   'Cebo mojado o deteriorado',
   'Estación bloqueada / obstruida',
@@ -93,6 +93,21 @@ export async function getVisitaDetalle(visitaId) {
 export async function finalizarVisita(visitaId) {
   await repo.finalizarVisita(visitaId);
 }
+// NUMERO DE OS 
+export async function actualizarOS({ id, os }) {
+  const valor = (os || '').trim();
+  if (valor.length > 50) {
+    throw new Error('Número de OS demasiado largo.');
+  }
+  await repo.updateVisitaOS({ id, os: valor || null });
+}
+// FECHA DE EJECUCION
+export async function actualizarFechaEjecucion({ id, fechaEjecucion }) {
+  if (fechaEjecucion && isNaN(Date.parse(fechaEjecucion))) {
+    throw new Error('Fecha de ejecución inválida.');
+  }
+  await repo.updateVisitaFechaEjecucion({ id, fechaEjecucion: fechaEjecucion || null });
+}
 
 // ── Estaciones ────────────────────────────────────────────────────────────────
 
@@ -132,8 +147,13 @@ export async function eliminarFoto(id) {
   return repo.deleteFoto(id);
 }
 
+export async function getOSByEstacionId(estacionId) {
+  return repo.getOSByEstacionId(estacionId);
+}
 // ── Historial de visitas del técnico ─────────────────────────────────────────
  
 export async function getVisitasByTecnico(tecnicoId) {
   return repo.findVisitasByTecnico(tecnicoId);
+
 }
+

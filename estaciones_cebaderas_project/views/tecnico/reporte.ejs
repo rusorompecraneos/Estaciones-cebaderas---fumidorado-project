@@ -241,6 +241,58 @@
     height: auto;
   }
   
+
+  /* ── Fotos por estación ── */
+.rpt-fotos-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.rpt-fotos-est {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rpt-fotos-est__label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+.rpt-fotos-est__num {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.rpt-fotos-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rpt-foto-thumb {
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  aspect-ratio: 4/3;
+  background: var(--color-surface-2);
+}
+.rpt-foto-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+@media print {
+  .rpt-fotos-section { grid-template-columns: repeat(3, 1fr); }
+  .rpt-foto-thumb img { page-break-inside: avoid; }
+}
 }
   </style>
 </head>
@@ -281,11 +333,11 @@
       <div class="rpt-header__logo">FD</div>
       <div>
         <div class="rpt-header__name">Fumi Dorado S.A.S.</div>
-        <div class="rpt-header__sub">Reporte de visita técnica — Diagrama U.P.C.</div>
+        <div class="rpt-header__sub">Control de estaciones cebaderas</div>
       </div>
     </div>
     <div class="rpt-header__meta">
-      <div class="rpt-header__code">SGC-Fo8501 / Versión 2</div>
+      <div class="rpt-header__code">SGC-Fo 8506 / Versión 5</div>
       <div class="rpt-header__date">
         <%= new Date(visita.fecha).toLocaleDateString('es-CO', {day:'2-digit', month:'long', year:'numeric'}) %>
       </div>
@@ -328,8 +380,20 @@
         <div class="rpt-info-field__label">Hora fin</div>
         <div class="rpt-info-field__value"><%= visita.hora_fin ? visita.hora_fin.slice(0,5) : '—' %></div>
       </div>
+      <div class="rpt-info-field">
+        <div class="rpt-info-field__label">Fecha de ejecución</div>
+        <div class="rpt-info-field__value">
+          <%= visita.fecha_ejecucion
+            ? new Date(visita.fecha_ejecucion).toLocaleDateString('es-CO', {day:'2-digit', month:'long', year:'numeric'})
+            : '—' %>
+      </div>
+      </div>
+        <div class="rpt-info-field">
+          <div class="rpt-info-field__label">Número de OS</div>
+          <div class="rpt-info-field__value"><%= visita.os || '—' %></div>
+        </div>
+      </div>
     </div>
-  </div>
 
   <!-- Estadísticas -->
   <div>
@@ -464,6 +528,39 @@
       </table>
     </div>
   </div>
+
+  <!-- Fotografías por estación -->
+<% const estacionesConFotos = estaciones.filter(e => e.fotos && e.fotos.length > 0); %>
+<% if (estacionesConFotos.length > 0) { %>
+<div>
+  <div class="rpt-section-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+      <circle cx="12" cy="13" r="4"/>
+    </svg>
+    Fotografías por estación
+  </div>
+  <div class="rpt-fotos-section">
+    <% estacionesConFotos.forEach(est => { %>
+      <div class="rpt-fotos-est">
+        <div class="rpt-fotos-est__label">
+          <span class="rpt-fotos-est__num">E<%= est.numero %></span>
+          <%= est.tipo === 'quimica' ? 'Química' : est.tipo === 'mecanica' ? 'Mecánica' : 'Ecológica' %>
+          <span class="td-muted">— <%= est.fotos.length %> foto<%= est.fotos.length !== 1 ? 's' : '' %></span>
+        </div>
+        <div class="rpt-fotos-grid">
+          <% est.fotos.forEach(foto => { %>
+            <div class="rpt-foto-thumb">
+              <img src="/fotos-servicio/<%= foto.filename %>" alt="Foto E<%= est.numero %>" loading="lazy"/>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
 
   <!-- Firmas -->
   <div class="firmas-grid">

@@ -34,8 +34,12 @@ validateEnv();
 // ── Crear carpetas de uploads ─────────────────────────────────────────────────
 const uploadsDir   = join(__dirname, '..', 'public', 'uploads', 'estaciones');
 const diagramasDir = join(__dirname, '..', 'public', 'uploads', 'diagramas');
+const fotosBaseDir = process.env.FOTOS_BASE_PATH;                              // x
+
 if (!fs.existsSync(uploadsDir))   fs.mkdirSync(uploadsDir,   { recursive: true });
 if (!fs.existsSync(diagramasDir)) fs.mkdirSync(diagramasDir, { recursive: true });
+if (fotosBaseDir && !fs.existsSync(fotosBaseDir))  fs.mkdirSync(fotosBaseDir, { recursive: true }); // x
+
 
 // ── Motor de plantillas ───────────────────────────────────────────────────────
 app.set('view engine', 'ejs');
@@ -77,7 +81,7 @@ app.use(session({
   cookie: {
     maxAge:   1000 * 60 * 60 * 8,   // 8 horas
     httpOnly: true,                  // no accesible desde JS del cliente
-    secure:   process.env.NODE_ENV === 'production',
+    secure:   false,
     sameSite: 'lax',
   },
   name: 'fd.sid',
@@ -92,6 +96,9 @@ app.use((req, res, next) => {
 // ── Proteger archivos de uploads — requiere sesión activa ─────────────────────
 // Los PDFs de diagramas y fotos de estaciones solo son para usuarios logueados
 app.use('/uploads', protectUploads, express.static(join(__dirname, '..', 'public', 'uploads')));
+
+app.use('/fotos-servicio', protectUploads, express.static(process.env.FOTOS_BASE_PATH));
+
 
 // ── Aplicar no-cache a todas las rutas de admin y técnico ────────────────────
 // Esto soluciona el bug del botón "atrás" y la sesión persistente tras reinicio
