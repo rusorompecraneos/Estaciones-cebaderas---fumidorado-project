@@ -77,8 +77,8 @@
       border-radius:var(--radius-md);
       padding:var(--space-3) var(--space-4);
     }
-    .rpt-info-field__label { font-size:var(--text-xs); color:var(--color-text-faint); margin-bottom:3px; }
-    .rpt-info-field__value { font-size:var(--text-sm); font-weight:500; color:var(--color-text); }
+    .rpt-info-field__label { font-size:var(--text-xs); color:var(--color-text-muted); margin-bottom:3px; font-weight: 600; }
+    .rpt-info-field__value { font-size:var(--text-sm); font-weight:600; color:var(--color-text); }
 
     /* ── Stats ── */
     .rpt-stats {
@@ -208,20 +208,69 @@
 
     /* ── Print ── */
     @media print {
-      .rpt-topbar { display:none !important; }
-      body        { background:#fff !important; color:#111 !important; }
-      .rpt-page   { padding:20px !important; max-width:100% !important; }
-      .rpt-stat, .rpt-info-field, .rpt-section-title,
-      .rpt-header, .rpt-table-wrap, .mapa-wrap, .mapa-leyenda,
-      .firmas-grid, .rpt-footer-bar {
-        color:#111 !important; background:#fff !important; border-color:#ddd !important;
-      }
-      .rpt-stat__label, .rpt-info-field__label, .td-muted { color:#555 !important; }
-      .rpt-header__date { color:#c9962a !important; }
-      .mapa-wrap { position:relative !important; }
-      #rpt-canvas        { display:none !important; }
-      #rpt-canvas-print  { width:100% !important; height:auto !important; display:block !important; }
-    }
+  .rpt-topbar { display:none !important; }
+
+  body {
+    background: #ffffff !important;
+    color: #111111 !important;
+  }
+
+  /* Textos */
+  .rpt-info-field__label,
+  .rpt-stat__label,
+  .td-muted,
+  .rpt-topbar__sub,
+  .rpt-header__sub,
+  .rpt-progress__label,
+  .rpt-footer-bar,
+  .mapa-leyenda__item,
+  .firma-box__line {
+    color: #444444 !important;
+  }
+
+  .rpt-info-field__value,
+  .rpt-stat__num,
+  .rpt-section-title,
+  .rpt-header__name,
+  tbody td,
+  thead th,
+  .firma-box__name {
+    color: #111111 !important;
+  }
+
+  .rpt-header__date { color: #b07d10 !important; }
+
+  /* Fondos */
+  .rpt-stat,
+  .rpt-info-field,
+  .mapa-wrap,
+  .mapa-leyenda,
+  .rpt-table-wrap,
+  .rpt-fotos-section {
+    background: #ffffff !important;
+    border-color: #cccccc !important;
+  }
+
+  thead { background: #f5f5f5 !important; }
+
+  /* Badges de consumo — mantener colores pero con fondo claro */
+  .consumo-badge.sin_consumo { background: #d4f0df !important; color: #1e6e3a !important; }
+  .consumo-badge.con_consumo { background: #fad4d4 !important; color: #8b1a1a !important; }
+  .consumo-badge.captura     { background: #faecd4 !important; color: #7a4e00 !important; }
+  .consumo-badge.pendiente   { background: #eeeeee !important; color: #555555 !important; }
+
+  .repone-badge.si { color: #1e6e3a !important; }
+  .repone-badge.no { color: #8b1a1a !important; }
+
+  /* Canvas / mapa */
+  .rpt-page   { padding: 20px !important; max-width: 100% !important; }
+  #rpt-canvas       { display: none !important; }
+  #rpt-canvas-print { width: 100% !important; height: auto !important; display: block !important; }
+
+  /* Fotos */
+  .rpt-foto-thumb { border-color: #cccccc !important; page-break-inside: avoid; }
+  .rpt-fotos-section { grid-template-columns: repeat(3, 1fr); }
+}
 
     @media(max-width:768px) {
       .rpt-info-grid { grid-template-columns:1fr 1fr; }
@@ -230,10 +279,7 @@
       .rpt-page      { padding:var(--space-4); }
       .rpt-topbar    { padding:var(--space-4); }
     }
-    @media print {
-      #rpt-canvas {
-      display: none !important;
-  }
+    
 
   #rpt-canvas-print {
     display: block !important;
@@ -289,11 +335,8 @@
   object-fit: cover;
   display: block;
 }
-@media print {
-  .rpt-fotos-section { grid-template-columns: repeat(3, 1fr); }
-  .rpt-foto-thumb img { page-break-inside: avoid; }
-}
-}
+
+
   </style>
 </head>
 <body>
@@ -603,15 +646,14 @@ const CONSUMO_COLORS = {
 };
 
 // ── Dibujar heatmap + puntos sobre el canvas ──────────────────────────────────
-function dibujarHeatmap(canvas, ctx) {
+function dibujarHeatmap(canvas, ctx, puntosPagina) {
   const W = canvas.width;
   const H = canvas.height;
   const baseRadius = Math.min(W, H) * 0.09;
   const DOT_R      = Math.min(W, H) * 0.018;
   const FONT_SZ    = Math.max(9, DOT_R * 1.1);
 
-  // Capa de gradientes
-  PUNTOS.forEach(p => {
+  puntosPagina.forEach(p => {
     const col = CONSUMO_COLORS[CONSUMO_MAP[p.numero] || 'pendiente'];
     const cx  = (p.x_pct / 100) * W;
     const cy  = (p.y_pct / 100) * H;
@@ -628,8 +670,7 @@ function dibujarHeatmap(canvas, ctx) {
     ctx.fill();
   });
 
-  // Capa de círculos numerados
-  PUNTOS.forEach(p => {
+  puntosPagina.forEach(p => {
     const col = CONSUMO_COLORS[CONSUMO_MAP[p.numero] || 'pendiente'];
     const cx  = (p.x_pct / 100) * W;
     const cy  = (p.y_pct / 100) * H;
@@ -658,46 +699,59 @@ function dibujarHeatmap(canvas, ctx) {
 async function renderMapa() {
   const loadingEl = document.getElementById('pdf-loading');
   const errorEl   = document.getElementById('pdf-error');
-  const canvas    = document.getElementById('rpt-canvas');
-  const ctx       = canvas.getContext('2d');
+  const container = document.getElementById('mapa-wrap');
 
-  // Resetear estado visual
   loadingEl.style.display = 'block';
   errorEl.style.display   = 'none';
-  canvas.style.display    = 'none';
+
+  // Limpiar canvases anteriores si los hay
+  container.querySelectorAll('canvas, .rpt-pagina-label').forEach(function(el) { el.remove(); });
 
   try {
-    // Cargar PDF con timeout de 15 segundos
-    const loadTask = pdfjsLib.getDocument({
-      url:              PDF_URL,
-      // Deshabilitar el worker si falla — fallback seguro
-      disableWorker:    false,
-      // Reintentar la conexión con el worker automáticamente
-      maxImageSize:     -1,
-    });
-
-    const pdf      = await Promise.race([
-      loadTask.promise,
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout al cargar el PDF')), 15000)
-      ),
+    const pdf = await Promise.race([
+      pdfjsLib.getDocument({ url: PDF_URL, maxImageSize: -1 }).promise,
+      new Promise(function(_, reject) {
+        setTimeout(function() { reject(new Error('Timeout')); }, 15000);
+      }),
     ]);
 
-    const page     = await pdf.getPage(1);
-    const viewport = page.getViewport({ scale: 1.5 });
+    const totalPaginas      = pdf.numPages;
+    const paginasConPuntos  = [...new Set(PUNTOS.map(function(p) { return p.pagina || 1; }))].sort(function(a,b){ return a-b; });
+    const paginasARenderizar = paginasConPuntos.length > 0 ? paginasConPuntos : [1];
 
-    canvas.width  = viewport.width;
-    canvas.height = viewport.height;
+    for (var i = 0; i < paginasARenderizar.length; i++) {
+      var numPagina = paginasARenderizar[i];
+      if (numPagina > totalPaginas) continue;
 
-    await page.render({ canvasContext: ctx, viewport }).promise;
+      // Etiqueta solo si hay más de una página
+      if (paginasARenderizar.length > 1) {
+        var label = document.createElement('div');
+        label.className   = 'rpt-pagina-label';
+        label.textContent = 'Página ' + numPagina;
+        label.style.cssText = 'font-size:var(--text-xs);color:var(--color-text-faint);padding:var(--space-2) 0;';
+        container.appendChild(label);
+      }
 
-    dibujarHeatmap(canvas, ctx);
+      var page     = await pdf.getPage(numPagina);
+      var viewport = page.getViewport({ scale: 1.5 });
+
+      var canvas   = document.createElement('canvas');
+      canvas.width  = viewport.width;
+      canvas.height = viewport.height;
+      canvas.style.cssText  = 'width:100%;height:auto;display:block;margin-bottom:var(--space-2);';
+      canvas.dataset.pagina = numPagina;
+      container.appendChild(canvas);
+
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+      var puntosPagina = PUNTOS.filter(function(p) { return (p.pagina || 1) === numPagina; });
+      dibujarHeatmap(canvas, canvas.getContext('2d'), puntosPagina);
+    }
 
     loadingEl.style.display = 'none';
-    canvas.style.display    = 'block';
 
-  } catch (err) {
-    console.error('[Reporte] Error cargando PDF:', err.message);
+  } catch(err) {
+    console.error('[Reporte] Error:', err.message);
     loadingEl.style.display = 'none';
     errorEl.style.display   = 'block';
   }
@@ -715,25 +769,20 @@ if (document.readyState === 'loading') {
 }
 
 // ── Fix impresión: canvas → imagen antes de imprimir ─────────────────────────
-window.addEventListener('beforeprint', function () {
-  const canvas = document.getElementById('rpt-canvas');
-  if (!canvas || canvas.style.display === 'none') return;
-
-  const existing = document.getElementById('rpt-canvas-print');
-  if (existing) existing.remove();
-
-  const img     = document.createElement('img');
-  img.id        = 'rpt-canvas-print';
-  img.src       = canvas.toDataURL('image/png');
-  img.style.cssText = 'width:100%;height:auto;display:block;';
-  canvas.parentNode.insertBefore(img, canvas);
+window.addEventListener('beforeprint', function() {
+  document.querySelectorAll('#mapa-wrap canvas').forEach(function(canvas) {
+    var img       = document.createElement('img');
+    img.className = 'rpt-canvas-print';
+    img.src       = canvas.toDataURL('image/png');
+    img.style.cssText = 'width:100%;height:auto;display:block;margin-bottom:8px;';
+    canvas.parentNode.insertBefore(img, canvas);
+    canvas.style.display = 'none';
+  });
 });
 
-window.addEventListener('afterprint', function () {
-  const img    = document.getElementById('rpt-canvas-print');
-  const canvas = document.getElementById('rpt-canvas');
-  if (img)    img.remove();
-  if (canvas) canvas.style.display = 'block';
+window.addEventListener('afterprint', function() {
+  document.querySelectorAll('.rpt-canvas-print').forEach(function(img) { img.remove(); });
+  document.querySelectorAll('#mapa-wrap canvas').forEach(function(c) { c.style.display = 'block'; });
 });
 </script>
 <% } %>

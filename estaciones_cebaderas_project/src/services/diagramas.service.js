@@ -56,7 +56,7 @@ export async function savePuntos(diagramaId, puntos) {
     if (isNaN(x) || isNaN(y) || x < 0 || x > 100 || y < 0 || y > 100) {
       throw new Error(`Coordenadas inválidas en punto ${i + 1}.`);
     }
-    return { numero: i + 1, tipo: p.tipo, x_pct: x, y_pct: y };
+    return { numero: i + 1, tipo: p.tipo, x_pct: x, y_pct: y, pagina: parseInt(p.pagina) || 1 };
   });
 
   await repo.savePuntos(diagramaId, normalized);

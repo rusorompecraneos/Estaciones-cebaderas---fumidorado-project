@@ -81,7 +81,7 @@ export async function deleteDiagrama(id) {
 
 export async function findPuntosByDiagrama(diagramaId) {
   const { rows } = await pool.query(
-    `SELECT id, numero, tipo, x_pct, y_pct
+    `SELECT id, numero, tipo, x_pct, y_pct, pagina
      FROM diagrama_puntos
      WHERE diagrama_id = $1
      ORDER BY numero ASC`,
@@ -108,9 +108,9 @@ export async function savePuntos(diagramaId, puntos) {
     // Insertar nuevos
     for (const p of puntos) {
       await client.query(
-        `INSERT INTO diagrama_puntos (diagrama_id, numero, tipo, x_pct, y_pct)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [diagramaId, p.numero, p.tipo, p.x_pct, p.y_pct]
+        `INSERT INTO diagrama_puntos (diagrama_id, numero, tipo, x_pct, y_pct, pagina)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [diagramaId, p.numero, p.tipo, p.x_pct, p.y_pct, p.pagina || 1]
       );
     }
 

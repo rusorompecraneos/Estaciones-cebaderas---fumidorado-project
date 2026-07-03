@@ -346,13 +346,13 @@
           <%= new Date().toLocaleDateString('es-CO', { day:'2-digit', month:'long', year:'numeric' }) %>
         </div>
 
-        <div class="os-field" style="margin-top: var(--space-2); display:flex; align-items:center; gap: var(--space-2);">
+        <div class="os-field" style="margin-top: var(--space-2); display:flex; flex-wrap:wrap; align-items:center; gap: var(--space-2);">
           <label for="os-input" style="font-weight:600; font-size: 0.85rem;">N° OS:</label>
           <input
             type="text"
             id="os-input"
             class="form-control"
-            style="max-width: 180px;"
+            style="min-width: 140px; width: 100%; max-width: 220px; flex:1;"
             placeholder="Número de OS"
             value="<%= visita.os || '' %>"
           />
@@ -365,7 +365,7 @@
             type="date"
             id="fecha-ejecucion-input"
             class="form-control"
-            style="max-width: 180px;"
+            style="min-width: 150px; width: 100%; max-width: 200px; flex:1;"
             value="<%= visita.fecha_ejecucion ? new Date(visita.fecha_ejecucion).toISOString().slice(0,10) : '' %>"
           />
           <span class="save-indicator" id="fecha-ejecucion-save-indicator"></span>
