@@ -120,7 +120,7 @@
       width:100%; border-radius:var(--radius-lg);
       border:1px solid var(--color-border);
       background:var(--color-surface-2);
-      overflow:hidden;
+      overflow:visible;
     }
     #rpt-canvas { width:100%; height:auto; display:block; }
 
@@ -492,15 +492,15 @@
     </div>
 
     <% if (diagrama) { %>
-      <div class="mapa-wrap" id="mapa-wrap">
+      <div class="mapa-wrap" id="mapa-wrap" style="position:relative;">
         <div class="pdf-loading" id="pdf-loading">
           <div class="pdf-spinner"></div>
           Cargando diagrama...
         </div>
         <div class="pdf-error" id="pdf-error">
-          No se pudo cargar el diagrama. <a href="#" onclick="renderMapa(); return false;">Reintentar</a>
+          No se pudo cargar el diagrama.
+          <a href="#" onclick="renderMapa(); return false;">Reintentar</a>
         </div>
-        <canvas id="rpt-canvas"></canvas>
       </div>
       <div class="mapa-leyenda" style="margin-top:var(--space-3);">
         <div class="mapa-leyenda__item"><div class="mapa-leyenda__dot" style="background:#3B9B5C;"></div>Sin consumo</div>
@@ -715,9 +715,12 @@ async function renderMapa() {
       }),
     ]);
 
-    const totalPaginas      = pdf.numPages;
-    const paginasConPuntos  = [...new Set(PUNTOS.map(function(p) { return p.pagina || 1; }))].sort(function(a,b){ return a-b; });
-    const paginasARenderizar = paginasConPuntos.length > 0 ? paginasConPuntos : [1];
+    // En lugar de solo páginas con puntos, renderizar TODAS las páginas del PDF
+    const totalPaginas       = pdf.numPages;
+    const paginasARenderizar = [];
+    for (var pg = 1; pg <= totalPaginas; pg++) {
+      paginasARenderizar.push(pg);
+}
 
     for (var i = 0; i < paginasARenderizar.length; i++) {
       var numPagina = paginasARenderizar[i];

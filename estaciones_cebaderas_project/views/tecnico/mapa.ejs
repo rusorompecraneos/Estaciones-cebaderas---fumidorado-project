@@ -272,38 +272,15 @@
     <!-- Mapa -->
 
     <div class="map-area" style="flex-direction:column; align-items:stretch; padding:0;">
-      <!-- Controles de página -->
-      <div id="page-controls" style="
-        display:none; align-items:center; justify-content:center;
-        gap:var(--space-4); padding:var(--space-3) var(--space-6);
-        background:var(--color-surface); border-bottom:1px solid var(--color-border);
-        flex-shrink:0;">
-        <button id="btn-prev-page" class="btn btn--ghost btn--sm" type="button" disabled>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-          Anterior
-        </button>
-        <span id="page-info" style="font-size:var(--text-sm);color:var(--color-text-muted);">
-          Página 1 de 1
-        </span>
-        <button id="btn-next-page" class="btn btn--ghost btn--sm" type="button">
-          Siguiente
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </button>
-      </div>
-      <!-- Área scrollable del mapa -->
-      <div style="flex:1;overflow:auto;background:#1a1a18;display:flex;align-items:flex-start;justify-content:center;padding:var(--space-6);">
-        <div class="map-wrap" id="map-wrap" style="position:relative; line-height:0;">
+      <div style="flex:1; overflow:auto; background:#1a1a18;
+                  display:flex; align-items:flex-start; justify-content:center;
+                  padding:var(--space-4);">
+        <div class="map-wrap" id="map-wrap" style="position:relative; line-height:0; width:100%; max-width:900px;">
           <div class="pdf-loading" id="pdf-loading">
             <div class="pdf-spinner"></div>
             <span>Cargando diagrama...</span>
           </div>
           <div id="pages-container" style="display:flex; flex-direction:column; gap:0;"></div>
-
-          <!-- Leyenda -->
           <div class="leyenda">
             <div class="leyenda-item"><div class="leyenda-dot" style="background:#555450;"></div>Sin revisar</div>
             <div class="leyenda-item"><div class="leyenda-dot" style="background:#3B9B5C;"></div>Sin consumo</div>
@@ -311,17 +288,7 @@
             <div class="leyenda-item"><div class="leyenda-dot" style="background:#E09B35;"></div>Captura</div>
           </div>
         </div>
-        <div class="pdf-loading" id="pdf-loading">
-          <div class="pdf-spinner"></div>
-          <span>Cargando diagrama...</span>
-        </div>
-        <canvas id="pdf-canvas" style="display:none;"></canvas>
-
-        
-        
       </div>
-
-      <!-- Tooltip flotante -->
       <div class="punto-tooltip" id="punto-tooltip">
         <div class="tooltip-title" id="tooltip-title">E1</div>
         <div class="tooltip-btns" id="tooltip-btns"></div>
@@ -337,7 +304,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 const VISITA_ID = '<%= visita.id %>';
-const PDF_URL   = '/tecnico/diagramas-upc/<%= diagrama.id %>/pdf';
+const PDF_URL = '/tecnico/diagramas-upc/<%= diagrama.id %>/pdf';
 
 const ESTACIONES = <%- JSON.stringify(
   estaciones.reduce((acc, e) => {
