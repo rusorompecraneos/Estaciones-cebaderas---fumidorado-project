@@ -441,10 +441,10 @@
 <script>
 const VISITA_ID = '<%= visita.id %>';
 
-// ── Agregar estación ─────────────────────────────────────────────────────────
+// ── Agregar estación ──────────────────────────────────────────────────────────
 document.getElementById('btn-agregar').addEventListener('click', async function () {
-  const tipo    = document.getElementById('tipo-select').value;
-  const res     = await fetch(`/tecnico/visita/${VISITA_ID}/estacion`, {
+  const tipo = document.getElementById('tipo-select').value;
+  const res  = await fetch(`/tecnico/visita/${VISITA_ID}/estacion`, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({ tipo }),
@@ -452,26 +452,19 @@ document.getElementById('btn-agregar').addEventListener('click', async function 
   const data = await res.json();
   if (!data.success) return alert('Error agregando estación.');
 
-  // Ocultar empty state
   const empty = document.getElementById('empty-state');
   if (empty) empty.style.display = 'none';
 
-  // Clonar template y agregar al DOM
-  const tpl  = document.getElementById('tpl-estacion');
+  const tpl   = document.getElementById('tpl-estacion');
   const clone = tpl.content.cloneNode(true);
   const card  = clone.querySelector('.estacion-card');
 
-  card.dataset.id     = data.estacion.id;
+  card.dataset.id      = data.estacion.id;
   card.dataset.consumo = 'pendiente';
 
-  // Número de estación
-  card.querySelector('.estacion-header__num').textContent =
-    'E' + data.estacion.numero;
-
-  // Tipo label
+  card.querySelector('.estacion-header__num').textContent  = 'E' + data.estacion.numero;
   const tipoLabels = { quimica: 'Química', mecanica: 'Mecánica', ecologica: 'Ecológica' };
-  card.querySelector('.estacion-header__tipo').textContent =
-    tipoLabels[tipo] || tipo;
+  card.querySelector('.estacion-header__tipo').textContent = tipoLabels[tipo] || tipo;
 
   document.getElementById('estaciones-list').appendChild(clone);
   initCard(card);
@@ -497,17 +490,17 @@ function initCard(card) {
     if ((await res.json()).success) card.remove();
   });
 
-  // Auto-save al cambiar cualquier campo
+  // Auto-save
   function autoSave() {
     clearTimeout(card._saveTimer);
-    saveInd.className = 'save-indicator saving visible';
+    saveInd.className   = 'save-indicator saving visible';
     saveInd.textContent = 'Guardando...';
 
     card._saveTimer = setTimeout(async () => {
-      const consumo      = card.dataset.consumo || 'pendiente';
-      const repone       = card.dataset.repone;
-      const novedad      = card.querySelector('.novedad-select')?.value || null;
-      const observaciones = card.querySelector('.obs-textarea')?.value || null;
+      const consumo       = card.dataset.consumo || 'pendiente';
+      const repone        = card.dataset.repone;
+      const novedad       = card.querySelector('.novedad-select')?.value || null;
+      const observaciones = card.querySelector('.obs-textarea')?.value   || null;
 
       await fetch(`/tecnico/estacion/${estId}`, {
         method:  'PATCH',
@@ -518,8 +511,6 @@ function initCard(card) {
       saveInd.className   = 'save-indicator saved visible';
       saveInd.textContent = '✓ Guardado';
       setTimeout(() => saveInd.classList.remove('visible'), 2000);
-
-      // Actualizar indicador y badge en header
       updateHeaderBadge(card, consumo);
     }, 800);
   }
@@ -544,34 +535,57 @@ function initCard(card) {
     });
   });
 
-  // Novedad y observaciones
   card.querySelector('.novedad-select')?.addEventListener('change', autoSave);
   card.querySelector('.obs-textarea')?.addEventListener('input',   autoSave);
 
-  // Subir foto
-  const uploadInput = card.querySelector('.upload-input');
-  const uploadBtn   = card.querySelector('.upload-btn');
-  // Aplicar estado actual del OS a esta card
+  // ── Fotos ─────────────────────────────────────────────────────────────────
+  const uploadInputGallery = card.querySelector('.upload-input--gallery');
+  const uploadInputCamera  = card.querySelector('.upload-input--camera');
+  const uploadBtn          = card.querySelector('.upload-btn');
+  const uploadDropdown     = card.querySelector('.upload-dropdown');
+  const optionGallery      = card.querySelector('.upload-option--gallery');
+  const optionCamera       = card.querySelector('.upload-option--camera');
+
+  // Aplicar estado OS
   if (uploadBtn) {
-    const osActual = (document.getElementById('os-input')?.value || '').trim();
+    const osActual          = (document.getElementById('os-input')?.value || '').trim();
     uploadBtn.disabled      = !osActual;
     uploadBtn.title         = osActual ? 'Agregar foto' : 'Ingresa el número de OS antes de subir fotos';
     uploadBtn.style.opacity = osActual ? '1' : '0.4';
     uploadBtn.style.cursor  = osActual ? 'pointer' : 'not-allowed';
   }
 
-  uploadBtn?.addEventListener('click', () => {
-    if (!uploadBtn.disabled) uploadInput.click();
+  // Toggle dropdown
+  uploadBtn?.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (uploadBtn.disabled) return;
+    const isOpen = uploadDropdown.style.display === 'block';
+    document.querySelectorAll('.upload-dropdown').forEach(function (d) {
+      d.style.display = 'none';
+    });
+    uploadDropdown.style.display = isOpen ? 'none' : 'block';
   });
 
-  uploadInput?.addEventListener('change', async function () {
-    const file = this.files[0];
-    if (!file) return;
+  document.addEventListener('click', function () {
+    uploadDropdown.style.display = 'none';
+  });
 
-    // Prevenir doble envío
+  optionGallery?.addEventListener('click', function () {
+    uploadDropdown.style.display = 'none';
+    uploadInputGallery.click();
+  });
+
+  optionCamera?.addEventListener('click', function () {
+    uploadDropdown.style.display = 'none';
+    uploadInputCamera.click();
+  });
+
+  async function handleUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
     if (uploadBtn.dataset.uploading === 'true') return;
     uploadBtn.dataset.uploading = 'true';
-    uploadBtn.style.opacity = '0.5';
+    uploadBtn.style.opacity     = '0.5';
 
     const formData = new FormData();
     formData.append('foto', file);
@@ -581,7 +595,6 @@ function initCard(card) {
       const data = await res.json();
       if (!data.success) { alert('Error subiendo foto.'); return; }
 
-      // Agregar thumb al grid
       const grid  = card.querySelector('.fotos-grid');
       const thumb = document.createElement('div');
       thumb.className      = 'foto-thumb';
@@ -589,18 +602,23 @@ function initCard(card) {
       thumb.innerHTML = `
         <img src="${data.url}" alt="Foto estación"/>
         <button class="foto-thumb__del" title="Eliminar foto">✕</button>`;
-      thumb.querySelector('.foto-thumb__del').addEventListener('click', () => deleteFoto(thumb, data.fotoId));
-      // Insertar antes del botón de cámara
-      const camBtn = card.querySelector('.upload-btn');
-      grid.insertBefore(thumb, camBtn);
+      thumb.querySelector('.foto-thumb__del').addEventListener('click', function () {
+        deleteFoto(thumb, data.fotoId);
+      });
+      const menu = card.querySelector('.upload-menu');
+      grid.insertBefore(thumb, menu);
     } finally {
-      this.value = '';
+      input.value                 = '';
       uploadBtn.dataset.uploading = 'false';
-      uploadBtn.style.opacity = '1';
+      uploadBtn.style.opacity     = '1';
     }
-  });
-}
+  }
 
+  uploadInputGallery?.addEventListener('change', function () { handleUpload(this); });
+  uploadInputCamera?.addEventListener('change',  function () { handleUpload(this); });
+} // ← cierre de initCard
+
+// ── Funciones globales ────────────────────────────────────────────────────────
 async function deleteFoto(thumb, fotoId) {
   if (!confirm('¿Eliminar esta foto?')) return;
   const res = await fetch(`/tecnico/foto/${fotoId}`, { method: 'DELETE' });
@@ -611,18 +629,18 @@ function updateHeaderBadge(card, consumo) {
   const badge     = card.querySelector('.estacion-header__badge');
   const indicator = card.querySelector('.consumo-indicator');
   const labels    = { sin_consumo: 'Sin consumo', con_consumo: 'Con consumo', captura: 'Captura', pendiente: 'Pendiente' };
-  badge.textContent = labels[consumo] || 'Pendiente';
-  badge.className   = `estacion-header__badge ${consumo}`;
+  badge.textContent   = labels[consumo] || 'Pendiente';
+  badge.className     = `estacion-header__badge ${consumo}`;
   indicator.className = `consumo-indicator ${consumo}`;
 }
 
-// Inicializar cards existentes (cargadas desde servidor)
+// Inicializar cards existentes
 document.querySelectorAll('.estacion-card').forEach(initCard);
 
-// ── Finalizar visita ─────────────────────────────────────────────────────────
+// ── Finalizar visita ──────────────────────────────────────────────────────────
 document.getElementById('btn-finalizar').addEventListener('click', async function () {
   if (!confirm('¿Finalizar la visita? Ya no podrás editar las estaciones.')) return;
-  this.disabled = true;
+  this.disabled    = true;
   this.textContent = 'Finalizando...';
   try {
     const res  = await fetch(`/tecnico/visita/${VISITA_ID}/finalizar`, {
@@ -635,12 +653,12 @@ document.getElementById('btn-finalizar').addEventListener('click', async functio
       window.location.href = data.redirect;
     } else {
       alert('Error: ' + (data.message || 'No se pudo finalizar.'));
-      this.disabled = false;
+      this.disabled    = false;
       this.textContent = 'Finalizar visita';
     }
-  } catch(err) {
+  } catch (err) {
     alert('Error de conexión al finalizar la visita.');
-    this.disabled = false;
+    this.disabled    = false;
     this.textContent = 'Finalizar visita';
   }
 });
@@ -652,23 +670,17 @@ let osSaveTimer;
 
 function setUploadBtnsEnabled(enabled) {
   document.querySelectorAll('.upload-btn').forEach(btn => {
-    btn.disabled = !enabled;
-    btn.title    = enabled
-      ? 'Agregar foto'
-      : 'Ingresa el número de OS antes de subir fotos';
+    btn.disabled      = !enabled;
+    btn.title         = enabled ? 'Agregar foto' : 'Ingresa el número de OS antes de subir fotos';
     btn.style.opacity = enabled ? '1' : '0.4';
     btn.style.cursor  = enabled ? 'pointer' : 'not-allowed';
   });
 }
 
-// Estado inicial: bloquear si no hay OS
 setUploadBtnsEnabled('<%= (visita.os || "").trim() %>' !== '');
 
 osInput.addEventListener('input', function () {
-  // Si el técnico borra el OS, bloquear inmediatamente
-  if (!osInput.value.trim()) {
-    setUploadBtnsEnabled(false);
-  }
+  if (!osInput.value.trim()) setUploadBtnsEnabled(false);
 
   clearTimeout(osSaveTimer);
   osSaveIndicator.className   = 'save-indicator saving visible';
@@ -676,7 +688,7 @@ osInput.addEventListener('input', function () {
 
   osSaveTimer = setTimeout(async () => {
     try {
-      const res = await fetch(`/tecnico/visita/${VISITA_ID}/os`, {
+      const res  = await fetch(`/tecnico/visita/${VISITA_ID}/os`, {
         method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ os: osInput.value }),
@@ -685,7 +697,6 @@ osInput.addEventListener('input', function () {
       if (data.success) {
         osSaveIndicator.className   = 'save-indicator saved visible';
         osSaveIndicator.textContent = '✓ Guardado';
-        // Habilitar cámara solo si hay valor real
         setUploadBtnsEnabled(osInput.value.trim() !== '');
       } else {
         osSaveIndicator.className   = 'save-indicator visible';
@@ -699,20 +710,19 @@ osInput.addEventListener('input', function () {
   }, 800);
 });
 
-
 // ── Guardar Fecha de ejecución ────────────────────────────────────────────────
-const fechaEjecucionInput = document.getElementById('fecha-ejecucion-input');
+const fechaEjecucionInput         = document.getElementById('fecha-ejecucion-input');
 const fechaEjecucionSaveIndicator = document.getElementById('fecha-ejecucion-save-indicator');
 let fechaEjecucionSaveTimer;
 
 fechaEjecucionInput.addEventListener('change', function () {
   clearTimeout(fechaEjecucionSaveTimer);
-  fechaEjecucionSaveIndicator.className = 'save-indicator saving visible';
+  fechaEjecucionSaveIndicator.className   = 'save-indicator saving visible';
   fechaEjecucionSaveIndicator.textContent = 'Guardando...';
 
   fechaEjecucionSaveTimer = setTimeout(async () => {
     try {
-      const res = await fetch(`/tecnico/visita/${VISITA_ID}/fecha-ejecucion`, {
+      const res  = await fetch(`/tecnico/visita/${VISITA_ID}/fecha-ejecucion`, {
         method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ fechaEjecucion: fechaEjecucionInput.value }),
@@ -732,9 +742,6 @@ fechaEjecucionInput.addEventListener('change', function () {
     setTimeout(() => fechaEjecucionSaveIndicator.classList.remove('visible'), 2000);
   }, 800);
 });
-
-
-
 </script>
 
 </body>

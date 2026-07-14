@@ -94,7 +94,7 @@ export async function findVisitaCompleta(visitaId) {
   let puntos = [];
   if (diagrama) {
     const { rows: pRows } = await pool.query(
-      `SELECT numero, tipo, x_pct, y_pct
+      `SELECT numero, tipo, x_pct, y_pct, pagina
        FROM diagrama_puntos
        WHERE diagrama_id = $1
        ORDER BY numero ASC`,
