@@ -44,6 +44,52 @@ export async function findSedeById(id) {
   return rows[0] || null;
 }
 
+// ── CREAR CLIENTE (con una o varias sedes) ────────────────────────────────────
+export async function createClienteConSedes({ codigo, nombre, nit, sedes }) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { rows } = await client.query(
+      `INSERT INTO clientes (codigo, nombre, nit, activo)
+       VALUES ($1, $2, $3, TRUE)
+       RETURNING id, codigo, nombre`,
+      [codigo, nombre, nit]
+    );
+    const cliente = rows[0];
+
+    const sedesCreadas = [];
+    for (const s of sedes) {
+      const { rows: sedeRows } = await client.query(
+        `INSERT INTO sedes (cliente_id, codigo, nombre, direccion, activo)
+         VALUES ($1, $2, $3, $4, TRUE)
+         RETURNING id, codigo, nombre, direccion`,
+        [cliente.id, s.codigo, s.nombre, s.direccion]
+      );
+      sedesCreadas.push(sedeRows[0]);
+    }
+
+    await client.query('COMMIT');
+    return { cliente, sedes: sedesCreadas };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+// ── CREAR SEDE (cliente existente) ─────────────────────────────────────────────
+export async function createSede({ clienteId, codigo, nombre, direccion }) {
+  const { rows } = await pool.query(
+    `INSERT INTO sedes (cliente_id, codigo, nombre, direccion, activo)
+     VALUES ($1, $2, $3, $4, TRUE)
+     RETURNING id, codigo, nombre, direccion`,
+    [clienteId, codigo, nombre, direccion]
+  );
+  return rows[0];
+}
+
 // ── VISITAS ──────────────────────────────────────────────────────────────────
 
 export async function createVisita({ tecnicoId, sedeId }) {

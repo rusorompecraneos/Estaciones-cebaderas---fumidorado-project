@@ -6,6 +6,8 @@ import fs    from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname }       from 'path';
 import * as clienteRepo  from '../repositories/tecnico.repository.js';
+import * as clientesService from '../services/clientes.service.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = dirname(__filename);
@@ -142,5 +144,27 @@ export async function servePdf(req, res) {
     return res.sendFile(filePath);
   } catch (err) {
     return res.status(500).send('Error.');
+  }
+}
+
+// ── POST /admin/clientes  (AJAX — crear cliente + sedes) ──────────────────────
+export async function crearCliente(req, res) {
+  try {
+    const { codigo, nombre, nit, sedes } = req.body;
+    const result = await clientesService.crearClienteConSedes({ codigo, nombre, nit, sedes });
+    return res.json({ success: true, ...result });
+  } catch (err) {
+    return res.status(400).json({ success: false, message: err.message });
+  }
+}
+
+// ── POST /admin/sedes  (AJAX — agregar sede a cliente existente) ──────────────
+export async function crearSedeAjax(req, res) {
+  try {
+    const { clienteId, codigo, nombre, direccion } = req.body;
+    const sede = await clientesService.crearSede({ clienteId, codigo, nombre, direccion });
+    return res.json({ success: true, sede });
+  } catch (err) {
+    return res.status(400).json({ success: false, message: err.message });
   }
 }

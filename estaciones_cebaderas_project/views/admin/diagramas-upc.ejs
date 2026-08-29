@@ -191,20 +191,25 @@
           <!-- Cliente -->
           <div class="form-group">
             <label class="form-label">Cliente *</label>
-            <select class="form-control" id="up-cliente">
-              <option value="" disabled selected>— Seleccione —</option>
-              <% clientes.forEach(c => { %>
-                <option value="<%= c.id %>"><%= c.codigo %> — <%= c.nombre %></option>
-              <% }) %>
-            </select>
+            <div style="display:flex; gap:8px;">
+              <select class="form-control" id="up-cliente" style="flex:1;">
+                <option value="" disabled selected>— Seleccione —</option>
+                <% clientes.forEach(c => { %>
+                  <option value="<%= c.id %>"><%= c.codigo %> — <%= c.nombre %></option>
+                <% }) %>
+              </select>
+              <button type="button" class="btn btn--secondary btn--sm" id="btn-nuevo-cliente">+ Cliente</button>
+            </div>
           </div>
 
-          <!-- Sede -->
           <div class="form-group">
             <label class="form-label">Sede *</label>
-            <select class="form-control" id="up-sede" disabled>
-              <option value="" disabled selected>— Primero seleccione cliente —</option>
-            </select>
+            <div style="display:flex; gap:8px;">
+              <select class="form-control" id="up-sede" disabled style="flex:1;">
+                <option value="" disabled selected>— Primero seleccione cliente —</option>
+              </select>
+              <button type="button" class="btn btn--secondary btn--sm" id="btn-nueva-sede" disabled>+ Sede</button>
+            </div>
           </div>
         </div>
 
@@ -322,6 +327,75 @@
     <div class="modal__actions">
       <button class="btn btn--secondary" onclick="closeDelete()">Cancelar</button>
       <button class="btn btn--danger"    onclick="confirmDelete()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: nuevo cliente -->
+<div class="modal-overlay" id="modal-cliente">
+  <div class="modal" style="max-width: 520px;">
+    <h2 class="modal__title">Nuevo cliente</h2>
+    <div class="upload-alert" id="cliente-alert"></div>
+
+    <div class="form-group">
+      <label class="form-label">Código *</label>
+      <input class="form-control" type="text" id="cli-codigo" maxlength="10"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nombre *</label>
+      <input class="form-control" type="text" id="cli-nombre" maxlength="50"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">NIT</label>
+      <input class="form-control" type="text" id="cli-nit" maxlength="20"/>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Sedes *</label>
+      <div id="cli-sedes-list"></div>
+      <button type="button" class="btn btn--secondary btn--sm" id="btn-add-sede-row" style="margin-top:8px;">+ Agregar sede</button>
+    </div>
+
+    <div class="modal__actions">
+      <button class="btn btn--secondary" type="button" onclick="closeModal('modal-cliente')">Cancelar</button>
+      <button class="btn btn--primary" type="button" id="btn-guardar-cliente">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Plantilla de fila de sede (clonada por JS) -->
+<template id="tpl-sede-row">
+  <div class="sede-row" style="display:flex; gap:8px; margin-bottom:8px;">
+    <input class="form-control sede-row__codigo" type="text" placeholder="Código" maxlength="10" style="max-width:100px;"/>
+    <input class="form-control sede-row__nombre" type="text" placeholder="Nombre de la sede" maxlength="150" style="flex:1;"/>
+    <input class="form-control sede-row__direccion" type="text" placeholder="Dirección" maxlength="225" style="flex:1;"/>
+    <button type="button" class="btn-icon btn-icon--danger sede-row__del" title="Quitar">✕</button>
+  </div>
+</template>
+
+<!-- Modal: nueva sede (cliente existente) -->
+<div class="modal-overlay" id="modal-sede">
+  <div class="modal">
+    <h2 class="modal__title">Nueva sede</h2>
+    <div class="upload-alert" id="sede-alert"></div>
+    <p style="font-size:var(--text-sm); color:var(--color-text-muted);" id="sede-cliente-label"></p>
+
+    <div class="form-group">
+      <label class="form-label">Código *</label>
+      <input class="form-control" type="text" id="sede-codigo" maxlength="10"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nombre *</label>
+      <input class="form-control" type="text" id="sede-nombre" maxlength="150"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Dirección</label>
+      <input class="form-control" type="text" id="sede-direccion" maxlength="225"/>
+    </div>
+
+    <div class="modal__actions">
+      <button class="btn btn--secondary" type="button" onclick="closeModal('modal-sede')">Cancelar</button>
+      <button class="btn btn--primary" type="button" id="btn-guardar-sede">Guardar</button>
     </div>
   </div>
 </div>
@@ -464,6 +538,144 @@ async function confirmDelete() {
 
 document.getElementById('modal-delete').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeDelete();
+});
+
+// ── Utilidades de modal ────────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+// ── Modal: nuevo cliente ─────────────────────────────────────────────────────
+function addSedeRow() {
+  const tpl   = document.getElementById('tpl-sede-row');
+  const clone = tpl.content.cloneNode(true);
+  clone.querySelector('.sede-row__del').addEventListener('click', function () {
+    this.closest('.sede-row').remove();
+  });
+  document.getElementById('cli-sedes-list').appendChild(clone);
+}
+
+document.getElementById('btn-nuevo-cliente').addEventListener('click', function () {
+  document.getElementById('cli-codigo').value = '';
+  document.getElementById('cli-nombre').value = '';
+  document.getElementById('cli-nit').value    = '';
+  document.getElementById('cli-sedes-list').innerHTML = '';
+  document.getElementById('cliente-alert').className  = 'upload-alert';
+  addSedeRow(); // al menos una fila por defecto
+  openModal('modal-cliente');
+});
+
+document.getElementById('btn-add-sede-row').addEventListener('click', addSedeRow);
+
+document.getElementById('btn-guardar-cliente').addEventListener('click', async function () {
+  const alertEl = document.getElementById('cliente-alert');
+  alertEl.className = 'upload-alert';
+
+  const sedes = Array.from(document.querySelectorAll('#cli-sedes-list .sede-row')).map(row => ({
+    codigo:    row.querySelector('.sede-row__codigo').value.trim(),
+    nombre:    row.querySelector('.sede-row__nombre').value.trim(),
+    direccion: row.querySelector('.sede-row__direccion').value.trim(),
+  }));
+
+  const payload = {
+    codigo: document.getElementById('cli-codigo').value.trim(),
+    nombre: document.getElementById('cli-nombre').value.trim(),
+    nit:    document.getElementById('cli-nit').value.trim(),
+    sedes,
+  };
+
+  try {
+    const res  = await fetch('/admin/clientes', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    if (!data.success) {
+      alertEl.textContent = data.message || 'Error al crear el cliente.';
+      alertEl.className   = 'upload-alert error visible';
+      return;
+    }
+
+    // Agregar el nuevo cliente al select y a SEDES_POR_CLIENTE sin recargar
+    const opt = document.createElement('option');
+    opt.value = data.cliente.id;
+    opt.textContent = `${data.cliente.codigo} — ${data.cliente.nombre}`;
+    clienteSelect.appendChild(opt);
+
+    SEDES_POR_CLIENTE[data.cliente.id] = data.sedes;
+
+    clienteSelect.value = data.cliente.id;
+    clienteSelect.dispatchEvent(new Event('change'));
+
+    closeModal('modal-cliente');
+  } catch {
+    alertEl.textContent = 'Error de conexión.';
+    alertEl.className   = 'upload-alert error visible';
+  }
+});
+
+// ── Modal: nueva sede (cliente existente) ────────────────────────────────────
+document.getElementById('btn-nueva-sede').addEventListener('click', function () {
+  if (!clienteSelect.value) return;
+  document.getElementById('sede-codigo').value    = '';
+  document.getElementById('sede-nombre').value    = '';
+  document.getElementById('sede-direccion').value = '';
+  document.getElementById('sede-alert').className = 'upload-alert';
+  document.getElementById('sede-cliente-label').textContent =
+    `Cliente: ${clienteSelect.options[clienteSelect.selectedIndex].textContent}`;
+  openModal('modal-sede');
+});
+
+// Habilitar/deshabilitar botón "+ Sede" según haya cliente seleccionado
+clienteSelect.addEventListener('change', function () {
+  document.getElementById('btn-nueva-sede').disabled = !this.value;
+});
+
+document.getElementById('btn-guardar-sede').addEventListener('click', async function () {
+  const alertEl = document.getElementById('sede-alert');
+  alertEl.className = 'upload-alert';
+
+  const payload = {
+    clienteId: clienteSelect.value,
+    codigo:    document.getElementById('sede-codigo').value.trim(),
+    nombre:    document.getElementById('sede-nombre').value.trim(),
+    direccion: document.getElementById('sede-direccion').value.trim(),
+  };
+
+  try {
+    const res  = await fetch('/admin/sedes', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    if (!data.success) {
+      alertEl.textContent = data.message || 'Error al crear la sede.';
+      alertEl.className   = 'upload-alert error visible';
+      return;
+    }
+
+    if (!SEDES_POR_CLIENTE[payload.clienteId]) SEDES_POR_CLIENTE[payload.clienteId] = [];
+    SEDES_POR_CLIENTE[payload.clienteId].push(data.sede);
+
+    clienteSelect.dispatchEvent(new Event('change')); // repuebla el select de sedes
+    sedeSelect.value = data.sede.id;
+    checkForm();
+
+    closeModal('modal-sede');
+  } catch {
+    alertEl.textContent = 'Error de conexión.';
+    alertEl.className   = 'upload-alert error visible';
+  }
+});
+
+// Cerrar modales al hacer clic fuera
+['modal-cliente', 'modal-sede'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal(id);
+  });
 });
 </script>
 

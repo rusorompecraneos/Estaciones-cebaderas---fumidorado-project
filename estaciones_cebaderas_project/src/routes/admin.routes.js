@@ -9,7 +9,7 @@ import {
 } from '../controllers/usuarios.controller.js';
 import { isAuthenticated, requireRole } from '../middlewares/authmiddleware.js';
 
-import { showDiagramas, subirDiagrama, showConfigurar, guardarPuntos, servePdf , eliminarDiagrama} from '../controllers/diagramas.controller.js';
+import { showDiagramas, subirDiagrama, showConfigurar, guardarPuntos, servePdf , eliminarDiagrama, crearCliente, crearSedeAjax } from '../controllers/diagramas.controller.js';
 
 import uploadDiagramas from '../middlewares/uploadDiagramas.js';
 import { showReportes, showReporte } from '../controllers/reportes.controller.js';
@@ -42,6 +42,7 @@ router.delete('/usuarios/tecnicos/:id',  eliminarTecnico);
 // Placeholder diagramas (próxima entrega)
 router.get('/diagramas-upc', showDiagramas);
 
+
 router.post(
   '/diagramas-upc',
   uploadDiagramas.single('pdf'),
@@ -57,6 +58,9 @@ router.post(
   guardarPuntos
 );
 router.delete('/diagramas-upc/:id',          eliminarDiagrama);
+
+router.post('/clientes', crearCliente);
+router.post('/sedes',    crearSedeAjax);
 
 router.get('/reportes', showReportes);
 
