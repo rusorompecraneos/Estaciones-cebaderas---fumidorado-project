@@ -109,6 +109,24 @@ export async function actualizarFechaEjecucion({ id, fechaEjecucion }) {
   await repo.updateVisitaFechaEjecucion({ id, fechaEjecucion: fechaEjecucion || null });
 }
 
+const HORA_MILITAR_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+// HORA DE INICIO
+export async function actualizarHoraInicio({ id, horaInicio }) {
+  if (horaInicio && !HORA_MILITAR_REGEX.test(horaInicio)) {
+    throw new Error('Hora de inicio inválida. Formato esperado HH:mm (24 horas).');
+  }
+  await repo.updateVisitaHoraInicio({ id, horaInicio: horaInicio || null });
+}
+
+// HORA DE FIN
+export async function actualizarHoraFin({ id, horaFin }) {
+  if (horaFin && !HORA_MILITAR_REGEX.test(horaFin)) {
+    throw new Error('Hora de fin inválida. Formato esperado HH:mm (24 horas).');
+  }
+  await repo.updateVisitaHoraFin({ id, horaFin: horaFin || null });
+}
+
 // ── Estaciones ────────────────────────────────────────────────────────────────
 
 export async function agregarEstacion({ visitaId, tipo }) {

@@ -1,7 +1,7 @@
 module.exports = {
   apps: [{
     name:        'fumiDorado-upc',
-    script:      'src/app.js',          // ajusta si tu entry point es diferente
+    script:      'src/app.js',          
     interpreter: 'node',
     node_args:   '--experimental-vm-modules',
     instances:   1,

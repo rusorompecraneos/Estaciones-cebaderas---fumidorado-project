@@ -369,6 +369,30 @@
             value="<%= visita.fecha_ejecucion ? new Date(visita.fecha_ejecucion).toISOString().slice(0,10) : '' %>"
           />
           <span class="save-indicator" id="fecha-ejecucion-save-indicator"></span>
+
+          <label for="hora-inicio-input" style="font-weight:600; font-size: 0.85rem; margin-left: var(--space-3);">
+            Hora inicio:
+          </label>
+          <input
+            type="time"
+            id="hora-inicio-input"
+            class="form-control"
+            style="min-width: 110px; width: 100%; max-width: 140px; flex:1;"
+            value="<%= visita.hora_inicio ? visita.hora_inicio.slice(0,5) : '' %>"
+          />
+          <span class="save-indicator" id="hora-inicio-save-indicator"></span>
+
+          <label for="hora-fin-input" style="font-weight:600; font-size: 0.85rem; margin-left: var(--space-3);">
+            Hora fin:
+          </label>
+          <input
+            type="time"
+            id="hora-fin-input"
+            class="form-control"
+            style="min-width: 110px; width: 100%; max-width: 140px; flex:1;"
+            value="<%= visita.hora_fin ? visita.hora_fin.slice(0,5) : '' %>"
+          />
+          <span class="save-indicator" id="hora-fin-save-indicator"></span>
         </div>
       </div>
       <div class="leyenda">
@@ -742,6 +766,45 @@ fechaEjecucionInput.addEventListener('change', function () {
     setTimeout(() => fechaEjecucionSaveIndicator.classList.remove('visible'), 2000);
   }, 800);
 });
+
+// ── Guardar Hora inicio / Hora fin ────────────────────────────────────────────
+function setupHoraField(inputId, indicatorId, endpoint, bodyKey) {
+  const input     = document.getElementById(inputId);
+  const indicator = document.getElementById(indicatorId);
+  let timer;
+
+  input.addEventListener('change', function () {
+    clearTimeout(timer);
+    indicator.className   = 'save-indicator saving visible';
+    indicator.textContent = 'Guardando...';
+
+    timer = setTimeout(async () => {
+      try {
+        const res  = await fetch(`/tecnico/visita/${VISITA_ID}/${endpoint}`, {
+          method:  'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ [bodyKey]: input.value }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          indicator.className   = 'save-indicator saved visible';
+          indicator.textContent = '✓ Guardado';
+        } else {
+          indicator.className   = 'save-indicator visible';
+          indicator.textContent = data.message || 'Error al guardar';
+        }
+      } catch (err) {
+        indicator.className   = 'save-indicator visible';
+        indicator.textContent = 'Error de conexión';
+      }
+      setTimeout(() => indicator.classList.remove('visible'), 2000);
+    }, 400);
+  });
+}
+
+setupHoraField('hora-inicio-input', 'hora-inicio-save-indicator', 'hora-inicio', 'horaInicio');
+setupHoraField('hora-fin-input',    'hora-fin-save-indicator',    'hora-fin',    'horaFin');
+
 </script>
 
 </body>

@@ -74,7 +74,7 @@ export async function findVisitaById(id) {
 export async function finalizarVisita(visitaId) {
   await pool.query(
     `UPDATE visitas
-     SET estado = 'finalizada', hora_fin = CURRENT_TIME
+     SET estado = 'finalizada'
      WHERE id = $1`,
     [visitaId]
   );
@@ -108,6 +108,26 @@ export async function updateVisitaFechaEjecucion({ id, fechaEjecucion }) {
      SET fecha_ejecucion = $1
      WHERE id = $2`,
     [fechaEjecucion, id]
+  );
+}
+
+// HORA DE INICIO
+export async function updateVisitaHoraInicio({ id, horaInicio }) {
+  await pool.query(
+    `UPDATE visitas
+     SET hora_inicio = $1
+     WHERE id = $2`,
+    [horaInicio, id]
+  );
+}
+
+// HORA DE FIN
+export async function updateVisitaHoraFin({ id, horaFin }) {
+  await pool.query(
+    `UPDATE visitas
+     SET hora_fin = $1
+     WHERE id = $2`,
+    [horaFin, id]
   );
 }
 

@@ -21,7 +21,9 @@ import {
   showMapa,
   showMisVisitas,
   actualizarOS, 
-  actualizarFechaEjecucion, 
+  actualizarFechaEjecucion,
+  actualizarHoraInicio,
+  actualizarHoraFin
 } from '../controllers/tecnico.controller.js';
 
 import { servePdf } from '../controllers/diagramas.controller.js';
@@ -98,7 +100,8 @@ router.get('/visita/:visitaId',       showVisita);
 router.post('/visita/:visitaId/finalizar', finalizarVisita);
 router.patch('/visita/:visitaId/os', actualizarOS);
 router.patch('/visita/:visitaId/fecha-ejecucion', actualizarFechaEjecucion);
-
+router.patch('/visita/:visitaId/hora-inicio', actualizarHoraInicio);
+router.patch('/visita/:visitaId/hora-fin', actualizarHoraFin);
 
 // ── Estaciones (AJAX) ─────────────────────────────────────────────────────────
 router.post('/visita/:visitaId/estacion', agregarEstacion);

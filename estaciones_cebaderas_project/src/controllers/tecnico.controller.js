@@ -224,6 +224,32 @@ export async function actualizarFechaEjecucion(req, res) {
   }
 }
 
+// ── PATCH /tecnico/visita/:visitaId/hora-inicio  (AJAX) ───────────────────────
+export async function actualizarHoraInicio(req, res) {
+  try {
+    await tecnicoService.actualizarHoraInicio({
+      id: req.params.visitaId,
+      horaInicio: req.body.horaInicio,
+    });
+    return res.json({ success: true });
+  } catch (err) {
+    return res.status(400).json({ success: false, message: err.message });
+  }
+}
+
+// ── PATCH /tecnico/visita/:visitaId/hora-fin  (AJAX) ───────────────────────────
+export async function actualizarHoraFin(req, res) {
+  try {
+    await tecnicoService.actualizarHoraFin({
+      id: req.params.visitaId,
+      horaFin: req.body.horaFin,
+    });
+    return res.json({ success: true });
+  } catch (err) {
+    return res.status(400).json({ success: false, message: err.message });
+  }
+}
+
 // ── GET /tecnico/visita/:visitaId/mapa ────────────────────────────────────────
 export async function showMapa(req, res) {
   try {
