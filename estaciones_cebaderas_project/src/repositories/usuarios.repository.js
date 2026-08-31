@@ -74,6 +74,7 @@ export async function findAllTecnicos() {
   const { rows } = await pool.query(
     `SELECT id, nombre, iniciales, email, telefono, activo, created_at
      FROM tecnicos
+     WHERE activo = TRUE
      ORDER BY nombre ASC`
   );
   return rows;
@@ -90,7 +91,11 @@ export async function findTecnicoById(id) {
 
 export async function findTecnicoByEmail(email) {
   const { rows } = await pool.query(
-    `SELECT id FROM tecnicos WHERE email = $1 LIMIT 1`,
+    `SELECT id 
+    FROM tecnicos 
+    WHERE email = $1 
+    AND activo = TRUE
+    LIMIT 1`,
     [email.trim().toLowerCase()]
   );
   return rows[0] || null;
@@ -127,5 +132,8 @@ export async function updateTecnicoPin({ id, pinHash }) {
 }
 
 export async function deleteTecnico(id) {
-  await pool.query(`DELETE FROM tecnicos WHERE id = $1`, [id]);
+  await pool.query(
+    `UPDATE tecnicos SET activo = FALSE WHERE id = $1`,
+    [id]
+  );
 }
