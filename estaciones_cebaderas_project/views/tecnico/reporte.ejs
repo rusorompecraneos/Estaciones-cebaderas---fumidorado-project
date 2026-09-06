@@ -132,8 +132,15 @@
       border:1px solid var(--color-border);
       border-radius:var(--radius-md);
     }
-    .mapa-leyenda__item { display:flex; align-items:center; gap:var(--space-2); font-size:var(--text-xs); color:var(--color-text-muted); }
-    .mapa-leyenda__dot  { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .mapa-leyenda__item {
+      font-size: var(--text-sm);
+    }
+
+    .mapa-leyenda__dot {
+      width: 15px;
+      height: 15px;
+      border-radius:50%;
+    }
 
     .mapa-no-diagrama {
       padding:var(--space-10); text-align:center;
@@ -491,6 +498,12 @@
       Mapa de calor — Diagrama UPC
     </div>
 
+      <div class="mapa-leyenda" style="margin-top:var(--space-3);">
+        <div class="mapa-leyenda__item"><div class="mapa-leyenda__dot" style="background:#3B9B5C;"></div>Sin consumo</div>
+        <div class="mapa-leyenda__item"><div class="mapa-leyenda__dot" style="background:#D94F4F;"></div>Con consumo</div>
+        <div class="mapa-leyenda__item"><div class="mapa-leyenda__dot" style="background:#E09B35;"></div>Captura</div>
+        <div class="mapa-leyenda__item"><div class="mapa-leyenda__dot" style="background:#555450;"></div>Sin revisar</div>
+      </div>
     <% if (diagrama) { %>
       <div class="mapa-wrap" id="mapa-wrap" style="position:relative;">
         <div class="pdf-loading" id="pdf-loading">
@@ -502,12 +515,7 @@
           <a href="#" onclick="renderMapa(); return false;">Reintentar</a>
         </div>
       </div>
-      <div class="mapa-leyenda" style="margin-top:var(--space-3);">
-        <div class="mapa-leyenda__item"><div class="mapa-leyenda__dot" style="background:#3B9B5C;"></div>Sin consumo</div>
-        <div class="mapa-leyenda__item"><div class="mapa-leyenda__dot" style="background:#D94F4F;"></div>Con consumo</div>
-        <div class="mapa-leyenda__item"><div class="mapa-leyenda__dot" style="background:#E09B35;"></div>Captura</div>
-        <div class="mapa-leyenda__item"><div class="mapa-leyenda__dot" style="background:#555450;"></div>Sin revisar</div>
-      </div>
+      
     <% } else { %>
       <div class="mapa-no-diagrama">
         No hay diagrama UPC configurado para esta sede.
