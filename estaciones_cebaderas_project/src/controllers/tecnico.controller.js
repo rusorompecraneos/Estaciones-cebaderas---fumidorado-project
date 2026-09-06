@@ -151,23 +151,32 @@ export async function eliminarEstacion(req, res) {
 }
 
 // ── POST /tecnico/estacion/:id/foto  (AJAX) ───────────────────────────────────
+// ── POST /tecnico/estacion/:id/foto  (AJAX) ───────────────────────────────────
 export async function subirFoto(req, res) {
   try {
-    if (!req.file) return res.status(400).json({ success: false, message: 'No se recibió ninguna foto.' });
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ success: false, message: 'No se recibió ninguna foto.' });
+    }
 
-    const os      = req.visitaOS;                       // inyectado por requireOS
-    const relPath = `${os}/${req.file.filename}`;       // lo que guardamos en BD
-    const url     = `/fotos-servicio/${relPath}`;       // URL pública protegida
+    const os = req.visitaOS; // inyectado por requireOS
 
-    const fotoId = await guardarFoto({
-      estacionId:   req.params.id,
-      filename:     relPath,                            // "OS/est-xxxxx.jpg"
-      originalName: req.file.originalname,
-      mimetype:     req.file.mimetype,
-      size:         req.file.size,
-    });
+    const fotos = [];
+    for (const file of req.files) {
+      const relPath = `${os}/${file.filename}`;
+      const url     = `/fotos-servicio/${relPath}`;
 
-    return res.json({ success: true, fotoId, filename: relPath, url });
+      const fotoId = await guardarFoto({
+        estacionId:   req.params.id,
+        filename:     relPath,
+        originalName: file.originalname,
+        mimetype:     file.mimetype,
+        size:         file.size,
+      });
+
+      fotos.push({ fotoId, filename: relPath, url });
+    }
+
+    return res.json({ success: true, fotos });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }

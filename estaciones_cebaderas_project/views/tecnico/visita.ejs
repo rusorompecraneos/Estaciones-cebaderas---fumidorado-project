@@ -605,32 +605,35 @@ function initCard(card) {
   });
 
   async function handleUpload(input) {
-    const file = input.files[0];
-    if (!file) return;
+    const files = Array.from(input.files);
+    if (files.length === 0) return;
     if (uploadBtn.dataset.uploading === 'true') return;
     uploadBtn.dataset.uploading = 'true';
     uploadBtn.style.opacity     = '0.5';
 
     const formData = new FormData();
-    formData.append('foto', file);
+    files.forEach(file => formData.append('fotos', file));
 
     try {
       const res  = await fetch(`/tecnico/estacion/${estId}/foto`, { method: 'POST', body: formData });
       const data = await res.json();
-      if (!data.success) { alert('Error subiendo foto.'); return; }
+      if (!data.success) { alert('Error subiendo fotos.'); return; }
 
-      const grid  = card.querySelector('.fotos-grid');
-      const thumb = document.createElement('div');
-      thumb.className      = 'foto-thumb';
-      thumb.dataset.fotoId = data.fotoId || '';
-      thumb.innerHTML = `
-        <img src="${data.url}" alt="Foto estación"/>
-        <button class="foto-thumb__del" title="Eliminar foto">✕</button>`;
-      thumb.querySelector('.foto-thumb__del').addEventListener('click', function () {
-        deleteFoto(thumb, data.fotoId);
-      });
+      const grid = card.querySelector('.fotos-grid');
       const menu = card.querySelector('.upload-menu');
-      grid.insertBefore(thumb, menu);
+
+      data.fotos.forEach(foto => {
+        const thumb = document.createElement('div');
+        thumb.className      = 'foto-thumb';
+        thumb.dataset.fotoId = foto.fotoId || '';
+        thumb.innerHTML = `
+          <img src="${foto.url}" alt="Foto estación"/>
+          <button class="foto-thumb__del" title="Eliminar foto">✕</button>`;
+        thumb.querySelector('.foto-thumb__del').addEventListener('click', function () {
+          deleteFoto(thumb, foto.fotoId);
+        });
+        grid.insertBefore(thumb, menu);
+      });
     } finally {
       input.value                 = '';
       uploadBtn.dataset.uploading = 'false';

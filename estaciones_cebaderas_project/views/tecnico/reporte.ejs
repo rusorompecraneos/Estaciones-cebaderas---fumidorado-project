@@ -254,8 +254,9 @@
   .mapa-leyenda,
   .rpt-table-wrap,
   .rpt-fotos-section {
-    background: #ffffff !important;
-    border-color: #cccccc !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    justify-content: center !important;
+    gap: 14px !important;
   }
 
   thead { background: #f5f5f5 !important; }
@@ -298,8 +299,9 @@
   /* ── Fotos por estación ── */
 .rpt-fotos-section {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  justify-content: center;
 }
 .rpt-fotos-est {
   display: flex;

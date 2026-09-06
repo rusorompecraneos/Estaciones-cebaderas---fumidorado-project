@@ -24,6 +24,9 @@ import {
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
+app.set('trust proxy', 1);   // ← Agregado por multipicidad de fotos en la misma visita, para que req.ip sea correcto detrás de proxy
+
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = dirname(__filename);
 

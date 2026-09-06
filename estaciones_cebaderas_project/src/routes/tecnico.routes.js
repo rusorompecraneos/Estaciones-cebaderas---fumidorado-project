@@ -109,7 +109,7 @@ router.patch('/estacion/:id',             actualizarEstacion);
 router.delete('/estacion/:id',            eliminarEstacion);
 
 // ── Fotos (AJAX) ──────────────────────────────────────────────────────────────
-router.post('/estacion/:id/foto', requireOS, upload.single('foto'), subirFoto);
+router.post('/estacion/:id/foto', requireOS, upload.array('fotos', 10), subirFoto);
 router.delete('/foto/:id',                                 borrarFoto);
 
 // ── Mapa ──────────────────────────────────────────────────────────────────────
