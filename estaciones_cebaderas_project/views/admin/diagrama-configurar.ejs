@@ -255,7 +255,7 @@ const PUNTOS_INICIALES = <%- JSON.stringify(puntos) %>;
 
 let tipoSeleccionado = 'quimica';
 let puntos  = [];
-let nextNum = 1;
+
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -322,9 +322,8 @@ document.querySelector('.tipo-btn').classList.add('selected');
 
 // ── Agregar punto ─────────────────────────────────────────────────────────────
 function addPunto(tipo, x_pct, y_pct, numero, pagina) {
-  var num = numero || nextNum++;
-  if (!numero) nextNum = Math.max(nextNum, num + 1);
-  var pg = pagina || 1;
+  var pg  = pagina || 1;
+  var num = numero || (puntos.length + 1); // provisional — renumerarPuntos() lo ajusta abajo
 
   var id = 'p-' + Date.now() + '-' + Math.random();
   puntos.push({ id: id, numero: num, tipo: tipo,
@@ -343,6 +342,22 @@ function addPunto(tipo, x_pct, y_pct, numero, pagina) {
 
   makeDraggable(dot, id, wrapper);
   wrapper.appendChild(dot);
+
+  renumerarPuntos();
+}
+
+// ── Renumerar todo según posición actual en el arreglo ────────────────────────
+// Refleja exactamente lo que savePuntos() hará en el backend (numero = índice+1),
+// así que la vista siempre coincide con lo que se va a guardar.
+function renumerarPuntos() {
+  puntos.forEach(function (p, i) {
+    p.numero = i + 1;
+    var dot = document.getElementById(p.id);
+    if (dot) {
+      dot.textContent = p.numero;
+      dot.title = 'E' + p.numero + ' — ' + TIPOS_CONFIG[p.tipo].label + ' · Pág.' + p.pagina;
+    }
+  });
   renderPuntosList();
 }
 
@@ -379,10 +394,10 @@ function makeDraggable(el, id, wrapper) {
 
 // ── Eliminar punto ────────────────────────────────────────────────────────────
 function deletePunto(id) {
-  puntos = puntos.filter(function(p) { return p.id !== id; });
+  puntos = puntos.filter(function (p) { return p.id !== id; });
   var el = document.getElementById(id);
   if (el) el.remove();
-  renderPuntosList();
+  renumerarPuntos();
 }
 
 // ── Lista sidebar ─────────────────────────────────────────────────────────────
@@ -410,7 +425,7 @@ function renderPuntosList() {
 document.getElementById('btn-limpiar').addEventListener('click', function() {
   if (!confirm('¿Eliminar todos los puntos?')) return;
   puntos  = [];
-  nextNum = 1;
+  // (eliminar: nextNum = 1;)
   document.querySelectorAll('.mapa-punto').forEach(function(el) { el.remove(); });
   renderPuntosList();
 });
