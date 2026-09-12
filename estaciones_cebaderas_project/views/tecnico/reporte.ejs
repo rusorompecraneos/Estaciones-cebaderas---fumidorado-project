@@ -216,6 +216,9 @@
     /* ── Print ── */
     @media print {
   .rpt-topbar { display:none !important; }
+    /* Canvas / mapa — nueva estrategia: imagen pre-generada, sin depender de beforeprint */
+  #mapa-wrap canvas    { display: none !important; }
+  .rpt-canvas-print    { display: block !important; width: 100% !important; height: auto !important; margin-bottom: 8px; }
 
   body {
     background: #ffffff !important;
@@ -344,7 +347,7 @@
   object-fit: cover;
   display: block;
 }
-
+.rpt-canvas-print { display: none; } /* oculto en pantalla, solo aparece al imprimir */
 
   </style>
 </head>
@@ -366,13 +369,14 @@
     </div>
   </div>
   <div class="rpt-topbar__actions">
-    <button class="btn btn--primary btn--sm" onclick="window.print()">
+    <button class="btn btn--primary btn--sm" id="btn-imprimir" type="button"
+            <% if (diagrama) { %>disabled<% } %>>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="6 9 6 2 18 2 18 9"/>
         <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
         <rect x="6" y="14" width="12" height="8"/>
       </svg>
-      Imprimir / Guardar PDF
+      <span id="btn-imprimir-text"><%= diagrama ? 'Preparando mapa...' : 'Imprimir / Guardar PDF' %></span>
     </button>
   </div>
 </header>
@@ -655,6 +659,15 @@ const CONSUMO_COLORS = {
   pendiente:   { r: 85,  g: 84,  b: 80  },
 };
 
+// ── Habilitar/deshabilitar botón de imprimir ──────────────────────────────────
+function setImprimirListo(listo) {
+  const btn = document.getElementById('btn-imprimir');
+  const txt = document.getElementById('btn-imprimir-text');
+  if (!btn) return;
+  btn.disabled = !listo;
+  if (txt) txt.textContent = listo ? 'Imprimir / Guardar PDF' : 'Preparando mapa...';
+}
+
 // ── Dibujar heatmap + puntos sobre el canvas ──────────────────────────────────
 function dibujarHeatmap(canvas, ctx, puntosPagina) {
   const W = canvas.width;
@@ -705,6 +718,28 @@ function dibujarHeatmap(canvas, ctx, puntosPagina) {
   });
 }
 
+// ── Renderizar una página individual Y pre-generar su imagen para impresión ──
+async function renderPagina(pdf, numPagina, canvas) {
+  const page     = await pdf.getPage(numPagina);
+  const viewport = page.getViewport({ scale: 1.5 });
+
+  canvas.width  = viewport.width;
+  canvas.height = viewport.height;
+
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+  const puntosPagina = PUNTOS.filter(p => (p.pagina || 1) === numPagina);
+  dibujarHeatmap(canvas, canvas.getContext('2d'), puntosPagina);
+
+  // Pre-generar la imagen de impresión AHORA, no en 'beforeprint'.
+  // Así, para cuando el usuario le dé a imprimir, ya está lista de sobra.
+  const img = document.createElement('img');
+  img.className = 'rpt-canvas-print';
+  img.src       = canvas.toDataURL('image/png');
+  img.alt       = 'Diagrama página ' + numPagina;
+  canvas.parentNode.insertBefore(img, canvas.nextSibling);
+}
+
 // ── Renderizar PDF ────────────────────────────────────────────────────────────
 async function renderMapa() {
   const loadingEl = document.getElementById('pdf-loading');
@@ -713,90 +748,65 @@ async function renderMapa() {
 
   loadingEl.style.display = 'block';
   errorEl.style.display   = 'none';
+  setImprimirListo(false);
 
-  // Limpiar canvases anteriores si los hay
-  container.querySelectorAll('canvas, .rpt-pagina-label').forEach(function(el) { el.remove(); });
+  container.querySelectorAll('canvas, img.rpt-canvas-print, .rpt-pagina-label').forEach(el => el.remove());
 
   try {
-    const pdf = await Promise.race([
-      pdfjsLib.getDocument({ url: PDF_URL, maxImageSize: -1 }).promise,
-      new Promise(function(_, reject) {
-        setTimeout(function() { reject(new Error('Timeout')); }, 15000);
-      }),
-    ]);
+    // Descargamos el PDF completo nosotros mismos (fetch normal, con reintento
+    // implícito del navegador) en vez de dejar que pdf.js haga range-requests
+    // internamente — más confiable sobre túneles como ngrok con más latencia.
+    const res = await fetch(PDF_URL);
+    if (!res.ok) throw new Error('No se pudo descargar el PDF (' + res.status + ')');
+    const arrayBuffer = await res.arrayBuffer();
 
-    // En lugar de solo páginas con puntos, renderizar TODAS las páginas del PDF
-    const totalPaginas       = pdf.numPages;
-    const paginasARenderizar = [];
-    for (var pg = 1; pg <= totalPaginas; pg++) {
-      paginasARenderizar.push(pg);
-}
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer, maxImageSize: -1 }).promise;
+    const totalPaginas = pdf.numPages;
 
-    for (var i = 0; i < paginasARenderizar.length; i++) {
-      var numPagina = paginasARenderizar[i];
-      if (numPagina > totalPaginas) continue;
-
-      // Etiqueta solo si hay más de una página
-      if (paginasARenderizar.length > 1) {
-        var label = document.createElement('div');
-        label.className   = 'rpt-pagina-label';
-        label.textContent = 'Página ' + numPagina;
+    const canvases = [];
+    for (let numPagina = 1; numPagina <= totalPaginas; numPagina++) {
+      if (totalPaginas > 1) {
+        const label = document.createElement('div');
+        label.className     = 'rpt-pagina-label';
+        label.textContent   = 'Página ' + numPagina;
         label.style.cssText = 'font-size:var(--text-xs);color:var(--color-text-faint);padding:var(--space-2) 0;';
         container.appendChild(label);
       }
 
-      var page     = await pdf.getPage(numPagina);
-      var viewport = page.getViewport({ scale: 1.5 });
-
-      var canvas   = document.createElement('canvas');
-      canvas.width  = viewport.width;
-      canvas.height = viewport.height;
+      const canvas = document.createElement('canvas');
       canvas.style.cssText  = 'width:100%;height:auto;display:block;margin-bottom:var(--space-2);';
       canvas.dataset.pagina = numPagina;
       container.appendChild(canvas);
-
-      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-
-      var puntosPagina = PUNTOS.filter(function(p) { return (p.pagina || 1) === numPagina; });
-      dibujarHeatmap(canvas, canvas.getContext('2d'), puntosPagina);
+      canvases.push(canvas);
     }
 
-    loadingEl.style.display = 'none';
+    await Promise.all(
+      canvases.map((canvas, i) => renderPagina(pdf, i + 1, canvas))
+    );
 
-  } catch(err) {
+    loadingEl.style.display = 'none';
+    setImprimirListo(true);
+
+  } catch (err) {
     console.error('[Reporte] Error:', err.message);
     loadingEl.style.display = 'none';
     errorEl.style.display   = 'block';
+    setImprimirListo(true); // permite imprimir el resto del reporte sin el mapa
   }
 }
 
-// ── Esperar a que el DOM esté completamente cargado ───────────────────────────
-// Este era el problema principal: renderMapa() se llamaba antes de que
-// el canvas estuviera disponible en el DOM cuando la página venía de
-// un estado de caché parcial.
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', renderMapa);
 } else {
-  // DOM ya listo (caso normal en navegación directa)
   renderMapa();
 }
 
-// ── Fix impresión: canvas → imagen antes de imprimir ─────────────────────────
-window.addEventListener('beforeprint', function() {
-  document.querySelectorAll('#mapa-wrap canvas').forEach(function(canvas) {
-    var img       = document.createElement('img');
-    img.className = 'rpt-canvas-print';
-    img.src       = canvas.toDataURL('image/png');
-    img.style.cssText = 'width:100%;height:auto;display:block;margin-bottom:8px;';
-    canvas.parentNode.insertBefore(img, canvas);
-    canvas.style.display = 'none';
-  });
+document.getElementById('btn-imprimir').addEventListener('click', function () {
+  window.print();
 });
 
-window.addEventListener('afterprint', function() {
-  document.querySelectorAll('.rpt-canvas-print').forEach(function(img) { img.remove(); });
-  document.querySelectorAll('#mapa-wrap canvas').forEach(function(c) { c.style.display = 'block'; });
-});
+
+
 </script>
 <% } %>
 
